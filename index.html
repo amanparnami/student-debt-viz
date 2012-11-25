@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <!-- TODO 
 	* Draw a stack bar chart
-	** draw x and y axis
-	** read data and handle null values
-	*** 74 schools with no aid data
-	**** remove them: 992 rows remain
-	*** Some schools with parts of data missing
+	** draw x and y axis (done)
+	** read data and handle null values (done)
+	*** 74 schools with no aid data (done)
+	**** remove them: 992 rows remain (done)
+	*** Some schools with parts of data missing 
 	**** wherever there is a null preceded by zero then insert zero
-	** map 1067 data points to the axes
 	* Make it interactive
 	* handle the 74 schools that were removed earlier
+	* brushing (done)
+	
 -->
 <meta charset="utf-8">
 <style>
@@ -32,213 +33,190 @@
 	.x.axis path {
 
 	}
+	
+	.brush .extent {
+		stroke: #fff;
+		fill-opacity: .125;
+		shape-rendering: crispEdges;
+	}
 
 </style>
 <body>
 	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 	<script>
+		$(document).ready(function() {
+			var cmargin = {top: 20, right: 10, bottom: 20, left: 40},
+			fmargin = {top: 220, right: 10, bottom: 20, left: 40},
+			cwidth = 1043 - cmargin.left - cmargin.right,
+			fwidth = 343 - fmargin.left - fmargin.right,
+			cheight = 200 - cmargin.top - cmargin.bottom,
+			fheight = 500 - fmargin.top - fmargin.bottom;
+	
+			var cx = d3.scale.ordinal().rangeRoundBands([0, cwidth], .1),
+			fx = d3.scale.ordinal().rangeRoundBands([0, fwidth], .1),
+			cy = d3.scale.linear().range([cheight, 0]),
+			fy = d3.scale.linear().range([fheight, 0]);
+	
+			var cxAxis = d3.svg.axis()
+			.scale(cx)
+			.orient("bottom")
+			.tickFormat(function(d){return "";});
+		
+			var fxAxis = d3.svg.axis()
+			.scale(fx)
+			.orient("bottom")
+			.tickFormat(function(d){return "";});
 
-		var margin = {top: 20, right: 10, bottom: 20, left: 40},
-		margin2 = {top: 430, right: 10, bottom: 20, left: 40},
-		width = 1442 - margin.left - margin.right,
-		height = 600 - margin.top - margin.bottom,
-		height2 = 500 - margin2.top - margin2.bottom,
-		barWidth = Math.floor(width/992);//-1;
-
-
-		var x = d3.scale.ordinal()
-		.rangeRoundBands([0, width], .1);
-
-		var y = d3.scale.linear()
-		.range([height, 0]);
-
-		var xAxis = d3.svg.axis()
-		.scale(x)
-		.orient("bottom")
-		.tickFormat(function(d) { return d.id; });
-
-		var yAxis = d3.svg.axis()
-		.scale(y)
-		.orient("left")
-		.tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
-
-		var color = d3.scale.ordinal()
-		    .range(["#8a89a6", "#ff8c00"]);
-
-		// An SVG element with a bottom-right origin .
-		var svg = d3.select("body").append("svg")
-		.attr("width", width + margin.left + margin.right)
-		.attr("height", height + margin.top + margin.bottom)
-		.append("g")
-		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			var cyAxis = d3.svg.axis()
+			.scale(cy)
+			.orient("left")
+			.tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
+									
+			var fyAxis = d3.svg.axis()
+			.scale(fy)
+			.orient("left")
+			.tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
+	
+			// An SVG element with a top-left origin .
+			var svg = d3.select("body").append("svg")
+			.attr("width", cwidth + cmargin.left + cmargin.right)
+			.attr("height",fheight + fmargin.top + fmargin.bottom)
+	
+			var context = svg.append("g")
+			.attr("id", "context")
+			.attr("transform", "translate(" + cmargin.left + "," + cmargin.top + ")");
 				
+			var focus = svg.append("g")
+			.attr("id","focus")
+			.attr("transform", "translate(" + fmargin.left + "," + fmargin.top + ")");
+	
+			var color = d3.scale.ordinal()
+			.range(["#8a89a6", "#ff8c00"]);
+			
 
-		d3.csv("data/2011_aid_less_schools.csv", function(error, data) {
-			color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid"]);
+			d3.csv("data/2011_aid_less_schools.csv", function(error,csvData) {
+				color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid"]);
 
-			// Convert strings to numbers.
-			data.forEach(function(d, i) {
-				//d.id = +i;
-				if(d.average_amount_any_loan_aid == "") {
-					d.average_amount_any_loan_aid = +0;
-				}
-				d.average_amount_any_loan_aid = +d.average_amount_any_loan_aid;
-				if(d.average_amount_any_grant_aid == "") {
-					d.average_amount_any_grant_aid = +0;
-				}
-				d.average_amount_any_grant_aid = +d.average_amount_any_grant_aid;
-				var y0 = 0;
-				d.amounts = color.domain().map(function(name) { return {name: name, y0: y0, y1: y0 += +d[name]}});
-				console.log(d.amounts.length);
-				d.total = d.amounts[d.amounts.length - 1].y1;
-			});
+				// Convert strings to numbers.
+				csvData.forEach(function(d, i) {
+					if(d.average_amount_any_loan_aid == "") {
+						d.average_amount_any_loan_aid = +0;
+					}
+					d.average_amount_any_loan_aid = +d.average_amount_any_loan_aid;
+					if(d.average_amount_any_grant_aid == "") {
+						d.average_amount_any_grant_aid = +0;
+					}
+					d.average_amount_any_grant_aid = +d.average_amount_any_grant_aid;
+					var y0 = 0;
+					d.amounts = color.domain().map(function(name) { return {name: name, y0: y0, y1: y0 += +d[name]}});
+					d.total = d.amounts[d.amounts.length - 1].y1;
+				});
 									
-			data.sort(function(a, b) { return a.total - b.total; });
-			//x.domain([0, 991]);
-			x.domain(data.map(function(d) { return d.id; }));
-			y.domain([0,d3.max(data, function(d) { return d.total; })]);
-										
-										
-			 var bar = svg.selectAll("g")
-			 		.data(data)
-			 		.enter().append("g")
-			 		.attr("class", "bar")
-			 		.attr("transform", function(d) { return "translate(" + x(d.id) + ",0)"; });		
-										
-			bar.selectAll("rect")
-			.data(function(d) {return d.amounts;})
-			.enter()
-			.append("rect")
-			      .attr("width", x.rangeBand())
-			      .attr("y", function(d) { return y(d.y1); })
-			      .attr("height", function(d) { return y(d.y0) - y(d.y1); })
-			      .style("fill", function(d) { return color(d.name); });
-			// .append("rect")
-			// 			.attr("width", x.rangeBand())
-			// 			.attr("y", function(d) { return y(d.average_amount_any_loan_aid);})
-			// 			.attr("height", function(d) { return   height - y(d.average_amount_any_loan_aid);})	
-			// 			.attr("transform", function(d) { return "translate(" + x(d.id) + ",0)"; })
-			// 			.attr("index", function(d, i) {return i;})
-			// 			.attr("data-value", function(d) { return d.average_amount_any_loan_aid; });			
+				csvData.sort(function(a, b) { return a.total - b.total; });
+		
+				cx.domain(csvData.map(function(d) { return d.id; }));
+				cy.domain([0,d3.max(csvData, function(d) { return d.total; })]);
+				//fx.domain(cx.domain());
+				fy.domain(cy.domain());
+												
+				drawContext(csvData);
+				
+				//Initialize focus with 20 values
+				fx.domain(cx.domain().slice(20,40));
+				drawFocus(csvData.slice(20,40));
+			
+			});//d3.csv
+	
+			function drawContext(csvData) {
+				var contextChart = context.selectAll("g").data(csvData);
+				var brush = d3.svg.brush().x(cx).extent([20,40]).on("brush", brushed);
+				var contextChartEnter = context.selectAll("g")
+				.data(csvData)
+				.enter().append("g")
+				.attr("class", "bar1")
+				.attr("transform", function(d) { return "translate(" + cx(d.id) + ",0)"; });
+				
+				//Rendering first layer
+				contextChartEnter.append("rect")
+				.attr("width", cx.rangeBand())
+				.attr("y", function(d) { return cy(d.amounts[0].y1); })
+				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); })
+				.style("fill", function(d) { return color(d.amounts[0].name); });
+						
+				//Rendering second layer													
+				contextChartEnter.append("rect")
+				.attr("width", cx.rangeBand())
+				.attr("y", function(d) { return cy(d.amounts[1].y1); })
+				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); })
+				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				
+				//set-up brush
+				context.append("g")
+				.attr("class", "x brush")
+				.call(brush)
+				.selectAll("rect")
+				.attr("y", -6)
+				.attr("height", cheight + 7);
+				
+				
+				function brushed() {
+				    var s = d3.event.target.extent();
+				    if (s[1]-s[0] < fwidth) {
+							fx.domain(brush.empty() ? cx.domain() : cx.domain().slice(s[0], s[1]));	
+							focus.select(".x.axis").call(fxAxis);
+				      drawFocus(csvData.slice(s[0],s[1]));							
+				    } else{
+							//Restrict the size of brush to the width of focus area
+							d3.event.target.extent([s[0],s[0]+fwidth-1]); 
+							d3.event.target(d3.select(this));
+						}
+				}
+													
+				// contextChart.exit().remove();
+				// contextChart.order();												
+			}
+	
+			function drawFocus(csvData) {
+				//Clean the leftovers
+				focus.selectAll("g").remove();
+				
+				//Redraw everything
+				var focusChart = focus.selectAll("g").data(csvData);
+				var focusChartEnter = focus.selectAll("g")
+				.data(csvData)
+				.enter().append("g")
+				.attr("class", "bar2")
+				.attr("transform", function(d) { return "translate(" + fx(d.id) + ",0)"; });
+				
+				//Rendering first layer
+				focusChartEnter.append("rect")
+				.attr("width", fx.rangeBand())
+				.attr("y", function(d) { return fy(d.amounts[0].y1); })
+				.attr("height", function(d) { return fy(d.amounts[0].y0) - fy(d.amounts[0].y1); })
+				.style("fill", function(d) { return color(d.amounts[0].name); });
+						
+				//Rendering second layer													
+				focusChartEnter.append("rect")
+				.attr("width", fx.rangeBand())
+				.attr("y", function(d) { return fy(d.amounts[1].y1); })
+				.attr("height", function(d) { return fy(d.amounts[1].y0) - fy(d.amounts[1].y1); })
+				.style("fill", function(d) { return color(d.amounts[1].name); });	
+								
+				focusChart.exit().remove();
+				focusChart.order();
+			}
+			
 
-			svg.append("g")
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis);
+		}); //(document)
+	
+	</script>
+	<div>
+		<div class="left-sidebar context">
+		
+		</div>
+		<div class="right-sidebar controls">
+		</div>
+	</div>
 
-			svg.append("g")
-			.attr("class", "y axis")
-			.call(yAxis)
-			.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("y", 6)
-			.attr("dy", ".71em")
-			.style("text-anchor", "end")
-			.text("Total");
-
-			// bar.selectAll("rect")
-			// 									      .data(function(d) { return d.average_amount_any_loan_aid; })
-			// 									    .enter().append("rect")
-			// 									      .attr("width", barWidth)
-			// 									      .attr("y", function(d) { return height - y(d.average_amount_any_loan_aid); })
-			// 									      .attr("height", function(d) { return y(d.average_amount_any_loan_aid); });
-									
-		});
-		// var parseDate = d3.time.format("%b %Y").parse;
-		// 
-		// var x = d3.scale.ordinal().rangeRoundBands([0, width], .1),
-		//     x2 = d3.scale.ordinal().rangeRoundBands([0, width], .1),
-		//     y = d3.scale.linear().range([height, 0]),
-		//     y2 = d3.scale.linear().range([height2, 0]);
-		// 
-		// var xAxis = d3.svg.axis().scale(x).orient("bottom"),
-		//     xAxis2 = d3.svg.axis().scale(x2).orient("bottom"),
-		//     yAxis = d3.svg.axis().scale(y).orient("left");
-		// 
-		// var brush = d3.svg.brush()
-		//     .x(x2)
-		//     .on("brush", brush);
-		// 
-		// var area = d3.svg.area()
-		//     .interpolate("monotone")
-		//     .x(function(d) { return x(d.id); })
-		//     .y0(height)
-		//     .y1(function(d) { return y(d.average_amount_any_loan_aid); });
-		// 
-		// var area2 = d3.svg.area()
-		//     .interpolate("monotone")
-		//     .x(function(d) { return x2(d.id); })
-		//     .y0(height2)
-		//     .y1(function(d) { return y2(d.average_amount_any_loan_aid); });
-		// 
-		// var svg = d3.select("body").append("svg")
-		//     .attr("width", width + margin.left + margin.right)
-		//     .attr("height", height + margin.top + margin.bottom);
-		// 
-		// svg.append("defs").append("clipPath")
-		//     .attr("id", "clip")
-		//   .append("rect")
-		//     .attr("width", width)
-		//     .attr("height", height);
-		// 
-		// var focus = svg.append("g")
-		//     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-		// 
-		// var context = svg.append("g")
-		//     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-		// 
-		// d3.csv("data/2011_aid_less_schools.csv", function(error, data) {
-			// 
-			//   data.forEach(function(d) {
-				//     if(d.average_amount_any_loan_aid == ""){
-					//     	d.average_amount_any_loan_aid = 0;
-					// 			console.log(d.name);
-					//     } 
-					//   });
-					// 
-					//   x.domain(d3.extent(data.map(function(d) { return d.id; })));
-					//   y.domain([0, d3.max(data.map(function(d) { return d.average_amount_any_loan_aid; }))]);
-					//   x2.domain(x.domain());
-					//   y2.domain(y.domain());
-					// 	console.log("read the axes data");
-					//   focus.append("path")
-					//       .datum(data)
-					//       .attr("clip-path", "url(#clip)")
-					//       .attr("d", area);
-					// 
-					//   focus.append("g")
-					//       .attr("class", "x axis")
-					//       .attr("transform", "translate(0," + height + ")")
-					//       .call(xAxis);
-					// 
-					// console.log("read the axes data");
-					// 
-					//   focus.append("g")
-					//       .attr("class", "y axis")
-					//       .call(yAxis);
-					// 
-					//   context.append("path")
-					//       .datum(data)
-					//       .attr("d", area2);
-					// 
-					//   context.append("g")
-					//       .attr("class", "x axis")
-					//       .attr("transform", "translate(0," + height2 + ")")
-					//       .call(xAxis2);
-					// 
-					//   context.append("g")
-					//       .attr("class", "x brush")
-					//       .call(brush)
-					//     .selectAll("rect")
-					//       .attr("y", -6)
-					//       .attr("height", height2 + 7);
-					// });
-					// 
-					// function brush() {
-						//   x.domain(brush.empty() ? x2.domain() : brush.extent());
-						//   focus.select("path").attr("d", area);
-						//   focus.select(".x.axis").call(xAxis);
-						// }
-
-					</script>
-				</body>
+</body>
