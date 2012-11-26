@@ -48,7 +48,7 @@
 		$(document).ready(function() {
 			var cmargin = {top: 20, right: 10, bottom: 20, left: 40},
 			fmargin = {top: 220, right: 10, bottom: 20, left: 40},
-			cwidth = 1043 - cmargin.left - cmargin.right,
+			cwidth = 1060 - cmargin.left - cmargin.right, //width=# of rows in csv
 			fwidth = 343 - fmargin.left - fmargin.right,
 			cheight = 200 - cmargin.top - cmargin.bottom,
 			fheight = 500 - fmargin.top - fmargin.bottom;
@@ -92,11 +92,11 @@
 			.attr("transform", "translate(" + fmargin.left + "," + fmargin.top + ")");
 	
 			var color = d3.scale.ordinal()
-			.range(["#8a89a6", "#ff8c00"]);
+			.range(["#1f77b4","#ff7f0e","#2ca02c"]);
 			
 
-			d3.csv("data/2011_aid_less_schools.csv", function(error,csvData) {
-				color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid"]);
+			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
+				color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid", "average_amount_personal_contribution"]);
 
 				// Convert strings to numbers.
 				csvData.forEach(function(d, i) {
@@ -108,12 +108,27 @@
 						d.average_amount_any_grant_aid = +0;
 					}
 					d.average_amount_any_grant_aid = +d.average_amount_any_grant_aid;
+					if(d.average_amount_personal_contribution == "") {
+						d.average_amount_personal_contribution = +0;
+					}
+					d.average_amount_personal_contribution = +d.average_amount_personal_contribution;
+					
+					/*
+					** Since our calculated average_amount_personal_contribution could be negative we have to make adjustments.
+					** - If it is negative subtract the extra amount from loan aid (assuming a smart person would do that)
+					** - Make the personal contribution = 0
+					*/
+					if(d.average_amount_personal_contribution < 0) {
+						d.average_amount_any_loan_aid -= d.average_amount_personal_contribution;
+						d.average_amount_personal_contribution = 0;
+					}
+					
 					var y0 = 0;
 					d.amounts = color.domain().map(function(name) { return {name: name, y0: y0, y1: y0 += +d[name]}});
 					d.total = d.amounts[d.amounts.length - 1].y1;
 				});
 									
-				csvData.sort(function(a, b) { return a.total - b.total; });
+				csvData = sortData(csvData);
 		
 				cx.domain(csvData.map(function(d) { return d.id; }));
 				cy.domain([0,d3.max(csvData, function(d) { return d.total; })]);
@@ -128,6 +143,10 @@
 			
 			});//d3.csv
 	
+			function sortData(csvData) {
+				return csvData.sort(function(a, b) { return a.total - b.total; });
+			}
+	
 			function drawContext(csvData) {
 				var contextChart = context.selectAll("g").data(csvData);
 				var brush = d3.svg.brush().x(cx).extent([20,40]).on("brush", brushed);
@@ -140,7 +159,7 @@
 				//Rendering first layer
 				contextChartEnter.append("rect")
 				.attr("width", cx.rangeBand())
-				.attr("y", function(d) { return cy(d.amounts[0].y1); })
+				.attr("y", function(d) {return cy(d.amounts[0].y1); })
 				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); })
 				.style("fill", function(d) { return color(d.amounts[0].name); });
 						
@@ -150,6 +169,13 @@
 				.attr("y", function(d) { return cy(d.amounts[1].y1); })
 				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); })
 				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				
+				//Rendering third layer													
+				contextChartEnter.append("rect")
+				.attr("width", cx.rangeBand())
+				.attr("y", function(d) { return cy(d.amounts[2].y1); })
+				.attr("height", function(d) { return cy(d.amounts[2].y0) - cy(d.amounts[2].y1); })
+				.style("fill", function(d) { return color(d.amounts[2].name); });	
 				
 				//set-up brush
 				context.append("g")
@@ -202,6 +228,13 @@
 				.attr("y", function(d) { return fy(d.amounts[1].y1); })
 				.attr("height", function(d) { return fy(d.amounts[1].y0) - fy(d.amounts[1].y1); })
 				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				
+				//Rendering third layer													
+				focusChartEnter.append("rect")
+				.attr("width", fx.rangeBand())
+				.attr("y", function(d) { return fy(d.amounts[2].y1); })
+				.attr("height", function(d) { return fy(d.amounts[2].y0) - fy(d.amounts[2].y1); })
+				.style("fill", function(d) { return color(d.amounts[2].name); });
 								
 				focusChart.exit().remove();
 				focusChart.order();
