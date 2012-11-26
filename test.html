@@ -43,12 +43,14 @@
 </style>
 <body>
 	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
 	<script>
 		$(document).ready(function() {
 			var cmargin = {top: 20, right: 10, bottom: 20, left: 40},
 			fmargin = {top: 220, right: 10, bottom: 20, left: 40},
-			cwidth = 1043 - cmargin.left - cmargin.right,
+			cwidth = 1060 - cmargin.left - cmargin.right, //width=# of rows in csv
 			fwidth = 343 - fmargin.left - fmargin.right,
 			cheight = 200 - cmargin.top - cmargin.bottom,
 			fheight = 500 - fmargin.top - fmargin.bottom;
@@ -81,7 +83,7 @@
 			// An SVG element with a top-left origin .
 			var svg = d3.select("body").append("svg")
 			.attr("width", cwidth + cmargin.left + cmargin.right)
-			.attr("height",fheight + fmargin.top + fmargin.bottom)
+			.attr("height",fheight + fmargin.top + fmargin.bottom+100)
 	
 			var context = svg.append("g")
 			.attr("id", "context")
@@ -92,12 +94,19 @@
 			.attr("transform", "translate(" + fmargin.left + "," + fmargin.top + ")");
 	
 			var color = d3.scale.ordinal()
-			.range(["#8a89a6", "#ff8c00"]);
+			.range(["#1f77b4","#ff7f0e","#2ca02c"]);
 			
-
-			d3.csv("data/2011_aid_less_schools.csv", function(error,csvData) {
-				color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid"]);
-
+			var ALLUP = 0;
+			var ONEDOWN = 1;
+			var TWODOWN = 2;
+			
+			var focusMode = TWODOWN;
+			
+			var cData = null, fData = null;
+			
+			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
+				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid", ]);
+				
 				// Convert strings to numbers.
 				csvData.forEach(function(d, i) {
 					if(d.average_amount_any_loan_aid == "") {
@@ -108,13 +117,28 @@
 						d.average_amount_any_grant_aid = +0;
 					}
 					d.average_amount_any_grant_aid = +d.average_amount_any_grant_aid;
+					if(d.average_amount_personal_contribution == "") {
+						d.average_amount_personal_contribution = +0;
+					}
+					d.average_amount_personal_contribution = +d.average_amount_personal_contribution;
+					
+					/*
+					** Since our calculated average_amount_personal_contribution could be negative we have to make adjustments.
+					** - If it is negative subtract the extra amount from loan aid (assuming a smart person would do that)
+					** - Make the personal contribution = 0
+					*/
+					if(d.average_amount_personal_contribution < 0) {
+						d.average_amount_any_loan_aid -= d.average_amount_personal_contribution;
+						d.average_amount_personal_contribution = 0;
+					}
+					
 					var y0 = 0;
 					d.amounts = color.domain().map(function(name) { return {name: name, y0: y0, y1: y0 += +d[name]}});
 					d.total = d.amounts[d.amounts.length - 1].y1;
 				});
 									
-				csvData.sort(function(a, b) { return a.total - b.total; });
-		
+				csvData = sortData(csvData);
+				cData = csvData;
 				cx.domain(csvData.map(function(d) { return d.id; }));
 				cy.domain([0,d3.max(csvData, function(d) { return d.total; })]);
 				//fx.domain(cx.domain());
@@ -124,9 +148,14 @@
 				
 				//Initialize focus with 20 values
 				fx.domain(cx.domain().slice(20,40));
-				drawFocus(csvData.slice(20,40));
+				fData = csvData.slice(20,40);
+				drawFocus(fData, focusMode);
 			
 			});//d3.csv
+	
+			function sortData(csvData) {
+				return csvData.sort(function(a, b) { return a.total - b.total; });
+			}
 	
 			function drawContext(csvData) {
 				var contextChart = context.selectAll("g").data(csvData);
@@ -140,7 +169,7 @@
 				//Rendering first layer
 				contextChartEnter.append("rect")
 				.attr("width", cx.rangeBand())
-				.attr("y", function(d) { return cy(d.amounts[0].y1); })
+				.attr("y", function(d) {return cy(d.amounts[0].y1); })
 				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); })
 				.style("fill", function(d) { return color(d.amounts[0].name); });
 						
@@ -150,6 +179,13 @@
 				.attr("y", function(d) { return cy(d.amounts[1].y1); })
 				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); })
 				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				
+				//Rendering third layer													
+				contextChartEnter.append("rect")
+				.attr("width", cx.rangeBand())
+				.attr("y", function(d) { return cy(d.amounts[2].y1); })
+				.attr("height", function(d) { return cy(d.amounts[2].y0) - cy(d.amounts[2].y1); })
+				.style("fill", function(d) { return color(d.amounts[2].name); });	
 				
 				//set-up brush
 				context.append("g")
@@ -165,55 +201,130 @@
 				    if (s[1]-s[0] < fwidth) {
 							fx.domain(brush.empty() ? cx.domain() : cx.domain().slice(s[0], s[1]));	
 							focus.select(".x.axis").call(fxAxis);
-				      drawFocus(csvData.slice(s[0],s[1]));							
+							fData =	csvData.slice(s[0],s[1]);
+							drawFocus(fData, focusMode);							
 				    } else{
 							//Restrict the size of brush to the width of focus area
 							d3.event.target.extent([s[0],s[0]+fwidth-1]); 
 							d3.event.target(d3.select(this));
 						}
 				}
-													
+												
 				// contextChart.exit().remove();
 				// contextChart.order();												
 			}
 	
-			function drawFocus(csvData) {
+			/*
+			** Mode is used to define the comparison axis
+			** "onedown" - only first variable will be plotted in negative axis
+			** "twodown" - first two variables will be plotted in negative axis
+			** "none" - all variables will be plotted on the positive axis
+			*/
+			function drawFocus(csvData, mode) {
 				//Clean the leftovers
 				focus.selectAll("g").remove();
 				
+				var drag = d3.behavior.drag()
+				    .origin(Object)
+				    .on("drag", dragmove);
+				
+				var seriesY = function(seriesId) {
+					switch(seriesId) {
+						case 0:
+						//first layer
+						switch(mode){
+							case ONEDOWN:
+								return (function(d) { return fheight;});
+							break;
+							case TWODOWN:
+								return (function(d) { return fheight + fy(d.amounts[1].y0) - fy(d.amounts[1].y1);});
+							break;
+							case ALLUP:
+								return (function(d) { return fy(d.amounts[0].y1);});
+							break;
+						}
+						
+						break;
+						case 1:
+						//second layer
+						switch(mode){
+							case ONEDOWN:
+								return (function(d) {return fy(d.amounts[1].y1) + fy(d.amounts[0].y0) - fy(d.amounts[0].y1);});
+							break;
+							case TWODOWN:
+								return (function(d) { return fheight;});
+							break;
+							case ALLUP:
+								return (function(d) {return fy(d.amounts[1].y1);});
+							break;
+						}
+						break;
+						case 2:
+						//third layer
+						switch(mode){
+							case ONEDOWN:
+								return (function(d) { return fy(d.amounts[2].y1) + fy(d.amounts[0].y0) - fy(d.amounts[0].y1);});
+							break;
+							case TWODOWN:
+								return (function(d) { return fheight - fy(d.amounts[2].y0) + fy(d.amounts[2].y1);});
+							break;
+							case ALLUP:
+								return (function(d) { return fy(d.amounts[2].y1);});
+							break;
+						}
+						break;
+					}
+				};
 				//Redraw everything
 				var focusChart = focus.selectAll("g").data(csvData);
-				var focusChartEnter = focus.selectAll("g")
-				.data(csvData)
-				.enter().append("g")
+				var focusChartEnter = focusChart.enter().append("g")
 				.attr("class", "bar2")
 				.attr("transform", function(d) { return "translate(" + fx(d.id) + ",0)"; });
 				
 				//Rendering first layer
 				focusChartEnter.append("rect")
 				.attr("width", fx.rangeBand())
-				.attr("y", function(d) { return fy(d.amounts[0].y1); })
+				.attr("y", seriesY(0))
 				.attr("height", function(d) { return fy(d.amounts[0].y0) - fy(d.amounts[0].y1); })
 				.style("fill", function(d) { return color(d.amounts[0].name); });
 						
 				//Rendering second layer													
 				focusChartEnter.append("rect")
 				.attr("width", fx.rangeBand())
-				.attr("y", function(d) { return fy(d.amounts[1].y1); })
+				.attr("y", seriesY(1))
 				.attr("height", function(d) { return fy(d.amounts[1].y0) - fy(d.amounts[1].y1); })
 				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				
+				//Rendering third layer													
+				focusChartEnter.append("rect")
+				.attr("width", fx.rangeBand())
+				.attr("y", seriesY(2))
+				.attr("height", function(d) { return fy(d.amounts[2].y0) - fy(d.amounts[2].y1); })
+				.style("fill", function(d) { return color(d.amounts[2].name); })
+				.call(drag);
+				
+				function dragmove(d) {
+					console.log(d);
+				  d3.select(this)
+				      .attr("transform", "translate("+this.x+","+d3.event.dy+")");
+				}				
 								
-				focusChart.exit().remove();
-				focusChart.order();
+				//focusChart.exit().remove();
+				//focusChart.order();
 			}
-			
+
+			$("#onedown").button().click(function(event){ focusMode = ONEDOWN; drawFocus(fData, focusMode);});
+			$("#twodown").button().click(function(event){ focusMode = TWODOWN; drawFocus(fData, focusMode);});
+			$("#allup").button().click(function(event){ focusMode = ALLUP; drawFocus(fData, focusMode);});	
 
 		}); //(document)
 	
 	</script>
 	<div>
 		<div class="left-sidebar context">
-		
+			<button id="onedown">Onedown</button>
+			<button id="twodown">Twodown</button>
+			<button id="allup">Allup</button>
 		</div>
 		<div class="right-sidebar controls">
 		</div>
