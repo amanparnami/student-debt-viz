@@ -96,7 +96,7 @@
 			
 
 			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
-				color.domain(["average_amount_any_loan_aid", "average_amount_any_grant_aid", "average_amount_personal_contribution"]);
+				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid", ]);
 
 				// Convert strings to numbers.
 				csvData.forEach(function(d, i) {
