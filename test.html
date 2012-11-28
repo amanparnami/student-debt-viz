@@ -14,6 +14,11 @@
 	* filtering
 	** changing the opacity of the filtered out elements
 	** cascade to detailed view
+	* details on demand
+	** add a click event trigger and pull "d" from there (done)
+	** modify showDetailsOnClick(d) to parse the strings
+	*** give proper names to labels. For example, average_amount_any_personal_contribution -> Personal Contribution
+	*** add units to values and round off decimal values. For example, $ to monetary
 	
 	Known Bugs
 	*
@@ -376,7 +381,8 @@
 				.attr("transform", function(d) { return "translate(" + fx(d.id) + ",0)"; })
 				.attr("fill-opacity",.6)
 				.on("mouseover",function(d) {d3.select(this).attr("fill-opacity",1);})
-				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6);});
+				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6);})
+				.on("click", function(d) {showDetailsOnClick(d);});
 				
 				//Rendering first layer
 				focusChartEnter.append("rect")
@@ -408,7 +414,16 @@
 				  d3.select(this)
 				      .attr("transform", "translate("+this.x+","+d3.event.dy+")");
 				}				
-								
+							
+				function showDetailsOnClick(d) {
+					//Clean previously populated data
+					//Do this only if you don't have persistent placeholders for data
+					$(".details-on-demand").contents().remove();
+					
+					$.each(d, function(key, value) {
+						$(".details-on-demand").append("<p><strong>"+key+" : </strong>"+value);
+					});
+				}				
 				//focusChart.exit().remove();
 				//focusChart.order();
 			}
@@ -449,6 +464,9 @@
 			<input type="radio" id="onedown" name="radio" /><label for="onedown">onedown</label>
 			<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">twodown</label>
 			<input type="radio" id="allup" name="radio" /><label for="allup">Allup</label>
+			<div class="details-on-demand">
+				<h3 id="school-name"></h3>
+			</div>
 		</div>
 	</div>
 
