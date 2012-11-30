@@ -19,6 +19,10 @@
 	** modify showDetailsOnClick(d) to parse the strings
 	*** give proper names to labels. For example, average_amount_any_personal_contribution -> Personal Contribution
 	*** add units to values and round off decimal values. For example, $ to monetary
+	*** the bar that is selected should be highlighted unless anything else is clicked
+	* show labels
+	** in case of states show state names
+	* when brushed highlight the states
 	
 	Known Bugs
 	*
@@ -78,6 +82,20 @@
 	
 	.filtered {
 		
+	}
+	
+	.selected {
+		fill: red;
+	}
+	
+	#states path {
+	  fill: #aaa;
+	  stroke: #fff;
+	  stroke-width: 1.5px;
+	}
+
+	#states path:hover {
+	  stroke: white;
 	}
 	
   .clearfix:after {
@@ -178,6 +196,46 @@
 			
 			var cData = null, fData = null;
 			
+			var width = 480,
+			    height = 250;
+			
+			var projection = d3.geo.albersUsa()
+			    .scale(width)
+			    .translate([width / 2, height / 2]);
+
+			var path = d3.geo.path()
+			    .projection(projection);
+			
+			var states = d3.select("div.states").append("svg")
+			.attr("width", width)
+			.attr("height",height)
+			.append("g")
+			    .attr("id", "states");
+
+			d3.json("assets/us-states.json", function(error, json) {
+			  states.selectAll("path")
+			      .data(json.features)
+			    .enter().append("path")
+			      .attr("d", path)
+						.attr("data-state", function(d) {return d.properties.name;})
+						.on("click", click);
+			});
+			
+			function click(d) {
+				d3.select(this).style("fill", "red");
+			}
+			
+			function highlightStates (fData) {
+				states.selectAll("path").style("fill", "#aaa");
+				//Reset color for all states
+				$.each(fData, function(key, value){
+					$('.states path[data-state="'+value.state+'"]').css("fill", "red");
+				});
+				
+				
+				//pick the states
+			}
+			
 			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
 				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid", ]);
 				
@@ -253,6 +311,7 @@
 				fy.domain(cy.domain());
 				fx.domain(cx.domain().slice(20,40));
 				fData = csvData.slice(20,40);
+				highlightStates(fData);
 				drawFocus(fData, focusMode);
 				
 				var contextChart = context.selectAll("g").data(csvData);
@@ -301,6 +360,9 @@
 							fx.domain(brush.empty() ? cx.domain() : cx.domain().slice(s[0], s[1]));	
 							focus.select(".x.axis").call(fxAxis);
 							fData =	cData.slice(s[0],s[1]);
+							
+							//Highlight the states that have been brushed
+							highlightStates(fData);
 							drawFocus(fData, focusMode);							
 				    } else{
 							//Restrict the size of brush to the width of focus area
@@ -388,24 +450,24 @@
 				focusChartEnter.append("rect")
 				.attr("width", fx.rangeBand())
 				.attr("y", seriesY(0))
-				.transition()
 				.attr("height", function(d) { return fy(d.amounts[0].y0) - fy(d.amounts[0].y1); })
+				.transition()
 				.style("fill", function(d) { return color(d.amounts[0].name); });
 						
 				//Rendering second layer													
 				focusChartEnter.append("rect")
 				.attr("width", fx.rangeBand())
 				.attr("y", seriesY(1))
-				.transition()
 				.attr("height", function(d) { return fy(d.amounts[1].y0) - fy(d.amounts[1].y1); })
+				.transition()
 				.style("fill", function(d) { return color(d.amounts[1].name); });	
 				
 				//Rendering third layer													
 				focusChartEnter.append("rect")
 				.attr("width", fx.rangeBand())
 				.attr("y", seriesY(2))
-				.transition()
 				.attr("height", function(d) { return fy(d.amounts[2].y0) - fy(d.amounts[2].y1); })
+				.transition()
 				.style("fill", function(d) { return color(d.amounts[2].name); });
 				//.call(drag);
 				
@@ -421,12 +483,13 @@
 					$(".details-on-demand").contents().remove();
 					
 					$.each(d, function(key, value) {
-						$(".details-on-demand").append("<p><strong>"+key+" : </strong>"+value);
+						$(".details-on-demand").append("<p><strong>"+key+" : </strong>"+value+"</p");
 					});
 				}				
 				//focusChart.exit().remove();
 				//focusChart.order();
 			}
+
 
 			$( "div.details" ).buttonset();
 			$("#onedown").click(function(event){ focusMode = ONEDOWN; drawFocus(fData, focusMode);});
@@ -459,6 +522,8 @@
 		<div class="right-sidebar controls">
 		</div>
 		<div class="left-sidebar focus">
+		</div>
+		<div class="left-sidebar states">
 		</div>
 		<div class="left-sidebar details">
 			<input type="radio" id="onedown" name="radio" /><label for="onedown">onedown</label>
