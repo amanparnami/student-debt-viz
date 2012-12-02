@@ -1,0 +1,85 @@
+	body {
+		font: 10px sans-serif;
+	}
+	
+	div#main {
+		width: 1200px;
+		height: 600px;
+	}
+
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: #000;
+		shape-rendering: crispEdges;
+	}
+
+	.bar {
+		fill: steelblue;
+	}
+
+	.x.axis path {
+
+	}
+	
+	.brush .extent {
+		stroke: #fff;
+		fill-opacity: .125;
+		shape-rendering: crispEdges;
+	}
+	
+	.controls {
+		width: 100%;
+		padding: 5px 10px;
+		background-color: #c7c7c7;
+		color: #636363;
+	}
+	
+	.left-sidebar {
+		float: left;
+	}
+	
+	.right-sidebar {
+		float: right;
+	}
+	
+	.focus {
+		clear: both;
+	}
+	
+	.context-bar {
+	
+	}
+	
+	.focus-bar {
+		fill: red;
+	}
+	
+	#sort-by, #filter-by {
+		display: inline;
+		float: left;
+	}
+	
+	.selected {
+		fill: red;
+	}
+	
+	#states path {
+	  fill: #aaa;
+	  stroke: #fff;
+	  stroke-width: 1.5px;
+	}
+
+	#states path:hover {
+	  stroke: white;
+	}
+	
+  .clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+    }
+
+.clearfix {display: inline-block;}  /* for IE/Mac */
