@@ -23,6 +23,9 @@
 	* show labels
 	** in case of states show state names
 	* when brushed highlight the states
+	* 5 levels of intensity for states, where each level corresponds to number of case (0-5, 5-10,...)
+	* display count of cases selected/filtered
+	* show details on demand for atleast one value by default
 
 	
 	Known Bugs
@@ -30,6 +33,8 @@
 	* on refreshing the page the map resets only half the time
 	* on sorting the filter becomes ineffective but the selection of filter remains intact
 	* when filters move the data appears to change. Weird!!
+	* on filtering the brush shouldn't change
+	* Puerto Rico is missing from the map but there are cases for that.
 	
 */
 	
@@ -143,10 +148,20 @@
 			
 			function highlightStates (fData) {
 				//Reset color for all states
-				states.selectAll("path").style("fill", "#aaa");
+				states.selectAll("path").style("fill", "#aaa").style("fill-opacity",1);
+				var stateCount = [];
 				
 				$.each(fData, function(key, value){
-					$('.states path[data-state="'+value.state+'"]').css("fill", "red");
+					//Initialize else NaN appears
+					if(stateCount[value.state] == null) {
+						stateCount[value.state] = 0;
+					}
+					//Increment the count
+					stateCount[value.state] += 1 ;
+				});
+				
+				$.each(fData, function(key, value){
+					$('.states path[data-state="'+value.state+'"]').css("fill", "red").css("fill-opacity", 0.2*(Math.ceil(stateCount[value.state]/5)));
 				});
 				
 				
@@ -249,6 +264,8 @@
 			
 			});//d3.csv
 	
+			
+	
 			function sortData(csvData, sortBy) {
 				switch(sortBy) {
 					case STATE:
@@ -332,9 +349,10 @@
 													var coaCondition = (cf[0] <= d["total"] && d["total"] <= cf[1]);
 													return  conCondition & debCondition & coaCondition; 
 												});
-												console.log("and" + filtered[0].length);
-												filtered.style("fill-opacity", 0.6);
-				
+												context.selectAll(".context-bar").style("fill-opacity", 0.6);
+												filtered.style("fill-opacity", 1);
+												
+				$("#counter").html("<span style='color: red;'>"+filtered[0].length+"</span> of "+csvData.length+" cases filtered.");
 				highlightStates(fData);
 				drawFocus(fData, focusMode);
 				
@@ -457,7 +475,6 @@
 				//.call(drag);
 				
 				function dragmove(d) {
-					console.log(d);
 				  d3.select(this)
 				      .attr("transform", "translate("+this.x+","+d3.event.dy+")");
 				}				
@@ -492,32 +509,15 @@
 			
 			$("#filter-by").buttonset();
 			$("#private-filter").click(function(event){ 
-				// //filter the elements that have control as Private
-				// var filtered = context.selectAll(".context-bar").filter(function(d, i) {return d["control"].slice(0,7) == "Private"; }); 
-				// console.log(filtered[0].length);
-				// 
-				// //turn everything light
-				// context.selectAll(".context-bar").style("fill-opacity", 0.6);
-				// //iterate over filtered elements to highlight them
-				// filtered.style("fill-opacity", 1);
 				controlFilter = "Private";
 				drawContext(cData);
 			});	
 			$("#public-filter").click(function(event){
-				// //filter the elements that have control as Public
-				// var filtered = context.selectAll(".context-bar").filter(function(d, i) {return d["control"] == "Public"; });
-				// console.log(filtered[0].length);
-				// //turn everything light
-				// context.selectAll(".context-bar").style("fill-opacity", 0.6);
-				// //iterate over filtered elements to highlight them
-				// filtered.style("fill-opacity", 1);
 				controlFilter = "Public";
 				drawContext(cData);
 			});
 			
 			$("#all-filter").click(function(event){
-				//iterate over filtered elements to highlight them
-				// context.selectAll(".context-bar").style("fill-opacity", 1);
 				controlFilter = "All";
 				drawContext(cData);
 			});
