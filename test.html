@@ -1,116 +1,8 @@
 <!DOCTYPE html>
-<!-- TODO 
-	* Draw a stack bar chart
-	** draw x and y axis (done)
-	** read data and handle null values (done)
-	*** 74 schools with no aid data (done)
-	**** remove them: 992 rows remain (done)
-	*** Some schools with parts of data missing 
-	**** wherever there is a null preceded by zero then insert zero
-	* Make it interactive
-	* handle the 74 schools that were removed earlier
-	* brushing (done)
-	* sorting (done. first attempt)
-	* filtering
-	** changing the opacity of the filtered out elements
-	** cascade to detailed view
-	* details on demand
-	** add a click event trigger and pull "d" from there (done)
-	** modify showDetailsOnClick(d) to parse the strings
-	*** give proper names to labels. For example, average_amount_any_personal_contribution -> Personal Contribution
-	*** add units to values and round off decimal values. For example, $ to monetary
-	*** the bar that is selected should be highlighted unless anything else is clicked
-	* show labels
-	** in case of states show state names
-	* when brushed highlight the states
-	
-	Known Bugs
-	*
-	
--->
 <meta charset="utf-8">
-<style>
-
-	body {
-		font: 10px sans-serif;
-	}
-	
-	div#main {
-		width: 1200px;
-		height: 600px;
-	}
-
-	.axis path,
-	.axis line {
-		fill: none;
-		stroke: #000;
-		shape-rendering: crispEdges;
-	}
-
-	.bar {
-		fill: steelblue;
-	}
-
-	.x.axis path {
-
-	}
-	
-	.brush .extent {
-		stroke: #fff;
-		fill-opacity: .125;
-		shape-rendering: crispEdges;
-	}
-	
-	.controls {
-		width: 100%;
-		padding: 5px 10px;
-		background-color: #c7c7c7;
-		color: #636363;
-	}
-	
-	.left-sidebar {
-		float: left;
-	}
-	
-	.right-sidebar {
-		float: right;
-	}
-	
-	.focus {
-		clear: both;
-	}
-	
-	.filtered {
-		
-	}
-	
-	.selected {
-		fill: red;
-	}
-	
-	#states path {
-	  fill: #aaa;
-	  stroke: #fff;
-	  stroke-width: 1.5px;
-	}
-
-	#states path:hover {
-	  stroke: white;
-	}
-	
-  .clearfix:after {
-    content: ".";
-    display: block;
-    height: 0;
-    clear: both;
-    visibility: hidden;
-    }
-
-.clearfix {display: inline-block;}  /* for IE/Mac */
-
-</style>
-
-
+<head>
+	<title>Student Debt Viz</title>
+</head>
 <!--[if IE]>
 <style type="text/css">
   .clearfix {
@@ -122,399 +14,40 @@
 </style>
 <![endif]-->
 <body>
-	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<!--Stylesheets -->
+	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
-	<script>
-		$(document).ready(function() {
-			var cmargin = {top: 20, right: 10, bottom: 20, left: 40},
-			fmargin = {top: 20, right: 10, bottom: 100, left: 40},
-			cwidth = 1060 - cmargin.left - cmargin.right, //width=# of rows in csv
-			fwidth = 343 - fmargin.left - fmargin.right,
-			cheight = 200 - cmargin.top - cmargin.bottom,
-			fheight = 400 - fmargin.top - fmargin.bottom;
-	
-			var cx = d3.scale.ordinal().rangeRoundBands([0, cwidth], .1),
-			fx = d3.scale.ordinal().rangeRoundBands([0, fwidth], .1),
-			cy = d3.scale.linear().range([cheight, 0]),
-			fy = d3.scale.linear().range([fheight, 0]);
-	
-			var cxAxis = d3.svg.axis()
-			.scale(cx)
-			.orient("bottom")
-			.tickFormat(function(d){return "";});
-		
-			var fxAxis = d3.svg.axis()
-			.scale(fx)
-			.orient("bottom")
-			.tickFormat(function(d){return "";});
 
-			var cyAxis = d3.svg.axis()
-			.scale(cy)
-			.orient("left")
-			.tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
-									
-			var fyAxis = d3.svg.axis()
-			.scale(fy)
-			.orient("left")
-			.tickFormat(function(d) { return Math.round(d / 1e3) + "K"; });
-	
-			// An SVG element with a top-left origin .
-			// var svg = d3.select("body").append("svg")
-			// .attr("width", cwidth + cmargin.left + cmargin.right)
-			// .attr("height",fheight + fmargin.top + fmargin.bottom+100)
-	
-			var context = d3.select("div.context").append("svg")
-			.attr("width", cwidth + cmargin.left + cmargin.right)
-			.attr("height",cheight + cmargin.top + cmargin.bottom).append("g")
-			.attr("id", "context")
-			.attr("transform", "translate(" + cmargin.left + "," + cmargin.top + ")");
-				
-			var focus = d3.select("div.focus").append("svg")
-			.attr("width", fwidth + fmargin.left + fmargin.right)
-			.attr("height",fheight + fmargin.top + fmargin.bottom).append("g")
-			.attr("id","focus")
-			.attr("transform", "translate(" + fmargin.left + "," + fmargin.top + ")");
-	
-			var color = d3.scale.ordinal()
-			.range(["#1f77b4","#ff7f0e","#2ca02c"]);
-			
-			//Focus modes
-			var ALLUP = 0;
-			var ONEDOWN = 1;
-			var TWODOWN = 2;
-			
-			//Sort types
-			var STATE = 0;
-			var DEBT = 1;
-			var RANK = 2;
-			var COA = 3;
-			
-			var focusMode = TWODOWN;
-			var sortType = COA;
-			
-			var cData = null, fData = null;
-			
-			var width = 480,
-			    height = 250;
-			
-			var projection = d3.geo.albersUsa()
-			    .scale(width)
-			    .translate([width / 2, height / 2]);
-
-			var path = d3.geo.path()
-			    .projection(projection);
-			
-			var states = d3.select("div.states").append("svg")
-			.attr("width", width)
-			.attr("height",height)
-			.append("g")
-			    .attr("id", "states");
-
-			d3.json("assets/us-states.json", function(error, json) {
-			  states.selectAll("path")
-			      .data(json.features)
-			    .enter().append("path")
-			      .attr("d", path)
-						.attr("data-state", function(d) {return d.properties.name;})
-						.on("click", click);
-			});
-			
-			function click(d) {
-				d3.select(this).style("fill", "red");
-			}
-			
-			function highlightStates (fData) {
-				states.selectAll("path").style("fill", "#aaa");
-				//Reset color for all states
-				$.each(fData, function(key, value){
-					$('.states path[data-state="'+value.state+'"]').css("fill", "red");
-				});
-				
-				
-				//pick the states
-			}
-			
-			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
-				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid", ]);
-				
-				// Convert strings to numbers.
-				csvData.forEach(function(d, i) {
-					if(d.average_amount_any_loan_aid == "") {
-						d.average_amount_any_loan_aid = +0;
-					}
-					d.average_amount_any_loan_aid = +d.average_amount_any_loan_aid;
-					if(d.average_amount_any_grant_aid == "") {
-						d.average_amount_any_grant_aid = +0;
-					}
-					d.average_amount_any_grant_aid = +d.average_amount_any_grant_aid;
-					if(d.average_amount_personal_contribution == "") {
-						d.average_amount_personal_contribution = +0;
-					}
-					d.average_amount_personal_contribution = +d.average_amount_personal_contribution;
-					
-					/*
-					** Since our calculated average_amount_personal_contribution could be negative we have to make adjustments.
-					** - If it is negative subtract the extra amount from loan aid (assuming a smart person would do that)
-					** - Make the personal contribution = 0
-					*/
-					if(d.average_amount_personal_contribution < 0) {
-						d.average_amount_any_loan_aid -= d.average_amount_personal_contribution;
-						d.average_amount_personal_contribution = 0;
-					}
-					
-					var y0 = 0;
-					d.amounts = color.domain().map(function(name) { return {name: name, y0: y0, y1: y0 += +d[name]}});
-					d.total = d.amounts[d.amounts.length - 1].y1;
-					d.debt = d.average_amount_any_loan_aid + d.average_amount_personal_contribution;
-				});
-									
-				//csvData = sortData(csvData, sortType);
-				cData = csvData;
-				//cx.domain(csvData.map(function(d) { return d.id; }));
-				
-				//fx.domain(cx.domain());
-				
-												
-				drawContext(csvData);
-				
-				//Initialize focus with 20 values
-				
-			
-			});//d3.csv
-	
-			function sortData(csvData, sortBy) {
-				switch(sortBy) {
-					case STATE:
-					return csvData.sort(function(a,b) {return (a.state==b.state)? 0 : ((a.state<b.state)? -1:1);});
-					break;
-					case DEBT:
-					return csvData.sort(function(a,b) {return (a.debt==b.debt)? 0 : ((a.debt<b.debt)? -1:1);});
-					break;
-					case RANK:
-					return csvData.sort(function(a,b) {return (a.rank==b.rank)? 0 : ((a.rank<b.rank)? -1:1);});
-					break;
-					case COA:
-					return csvData.sort(function(a,b) {return (a.total==b.total)? 0 : ((a.total<b.total)? -1:1);});
-					break;
-				}
-			}
-	
-			function drawContext(csvData) {
-				context.selectAll("g").remove();
-				
-				//You have to update the domain on sorting
-				csvData = sortData(csvData, sortType);
-				cx.domain(csvData.map(function(d) { return d.id; }));
-				cy.domain([0,d3.max(csvData, function(d) { return d.total; })]);
-				fy.domain(cy.domain());
-				fx.domain(cx.domain().slice(20,40));
-				fData = csvData.slice(20,40);
-				highlightStates(fData);
-				drawFocus(fData, focusMode);
-				
-				var contextChart = context.selectAll("g").data(csvData);
-				var brush = d3.svg.brush().x(cx).extent([20,40]).on("brush", brushed);
-				var contextChartEnter = context.selectAll("g")
-				.data(csvData)
-				.enter().append("g")
-				.attr("class", "bar1")
-				.attr("transform", function(d) { return "translate(" + cx(d.id) + ",0)"; })
-				.attr("id", function(d){return d.id;});
-				
-				//Rendering first layer
-				contextChartEnter.append("rect")
-				.attr("width", cx.rangeBand())
-				.attr("y", function(d) {return cy(d.amounts[0].y1); })
-				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); })
-				.style("fill", function(d) { return color(d.amounts[0].name); });
-						
-				//Rendering second layer													
-				contextChartEnter.append("rect")
-				.attr("width", cx.rangeBand())
-				.attr("y", function(d) { return cy(d.amounts[1].y1); })
-				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); })
-				.style("fill", function(d) { return color(d.amounts[1].name); });	
-				
-				//Rendering third layer													
-				contextChartEnter.append("rect")
-				.attr("width", cx.rangeBand())
-				.attr("y", function(d) { return cy(d.amounts[2].y1); })
-				.attr("height", function(d) { return cy(d.amounts[2].y0) - cy(d.amounts[2].y1); })
-				.style("fill", function(d) { return color(d.amounts[2].name); });	
-				
-				
-				//set-up brush
-				context.append("g")
-				.attr("class", "x brush")
-				.call(brush)
-				.selectAll("rect")
-				.attr("y", -6)
-				.attr("height", cheight + 7);
-				
-				
-				function brushed() {
-				    var s = d3.event.target.extent();
-				    if (s[1]-s[0] < fwidth) {
-							fx.domain(brush.empty() ? cx.domain() : cx.domain().slice(s[0], s[1]));	
-							focus.select(".x.axis").call(fxAxis);
-							fData =	cData.slice(s[0],s[1]);
-							
-							//Highlight the states that have been brushed
-							highlightStates(fData);
-							drawFocus(fData, focusMode);							
-				    } else{
-							//Restrict the size of brush to the width of focus area
-							d3.event.target.extent([s[0],s[0]+fwidth-1]); 
-							d3.event.target(d3.select(this));
-						}
-				}		
-				
-				contextChart.exit().remove();
-				contextChart.order();								
-			}
-	
-			/*
-			** Mode is used to define the comparison axis
-			** "onedown" - only first variable will be plotted in negative axis
-			** "twodown" - first two variables will be plotted in negative axis
-			** "none" - all variables will be plotted on the positive axis
-			*/
-			function drawFocus(csvData, mode) {
-				//Clean the leftovers
-				focus.selectAll("g").remove();
-				
-				var drag = d3.behavior.drag()
-				    .origin(Object)
-				    .on("drag", dragmove);
-				
-				var seriesY = function(seriesId) {
-					switch(seriesId) {
-						case 0:
-						//first layer
-						switch(mode){
-							case ONEDOWN:
-								return (function(d) { return fheight;});
-							break;
-							case TWODOWN:
-								return (function(d) { return fheight + fy(d.amounts[1].y0) - fy(d.amounts[1].y1);});
-							break;
-							case ALLUP:
-								return (function(d) { return fy(d.amounts[0].y1);});
-							break;
-						}
-						
-						break;
-						case 1:
-						//second layer
-						switch(mode){
-							case ONEDOWN:
-								return (function(d) {return fy(d.amounts[1].y1) + fy(d.amounts[0].y0) - fy(d.amounts[0].y1);});
-							break;
-							case TWODOWN:
-								return (function(d) { return fheight;});
-							break;
-							case ALLUP:
-								return (function(d) {return fy(d.amounts[1].y1);});
-							break;
-						}
-						break;
-						case 2:
-						//third layer
-						switch(mode){
-							case ONEDOWN:
-								return (function(d) { return fy(d.amounts[2].y1) + fy(d.amounts[0].y0) - fy(d.amounts[0].y1);});
-							break;
-							case TWODOWN:
-								return (function(d) { return fheight - fy(d.amounts[2].y0) + fy(d.amounts[2].y1);});
-							break;
-							case ALLUP:
-								return (function(d) { return fy(d.amounts[2].y1);});
-							break;
-						}
-						break;
-					}
-				};
-				//Redraw everything
-				var focusChart = focus.selectAll("g").data(csvData);
-				var focusChartEnter = focusChart.enter().append("g")
-				.attr("class", "bar2")
-				.attr("transform", function(d) { return "translate(" + fx(d.id) + ",0)"; })
-				.attr("fill-opacity",.6)
-				.on("mouseover",function(d) {d3.select(this).attr("fill-opacity",1);})
-				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6);})
-				.on("click", function(d) {showDetailsOnClick(d);});
-				
-				//Rendering first layer
-				focusChartEnter.append("rect")
-				.attr("width", fx.rangeBand())
-				.attr("y", seriesY(0))
-				.attr("height", function(d) { return fy(d.amounts[0].y0) - fy(d.amounts[0].y1); })
-				.transition()
-				.style("fill", function(d) { return color(d.amounts[0].name); });
-						
-				//Rendering second layer													
-				focusChartEnter.append("rect")
-				.attr("width", fx.rangeBand())
-				.attr("y", seriesY(1))
-				.attr("height", function(d) { return fy(d.amounts[1].y0) - fy(d.amounts[1].y1); })
-				.transition()
-				.style("fill", function(d) { return color(d.amounts[1].name); });	
-				
-				//Rendering third layer													
-				focusChartEnter.append("rect")
-				.attr("width", fx.rangeBand())
-				.attr("y", seriesY(2))
-				.attr("height", function(d) { return fy(d.amounts[2].y0) - fy(d.amounts[2].y1); })
-				.transition()
-				.style("fill", function(d) { return color(d.amounts[2].name); });
-				//.call(drag);
-				
-				function dragmove(d) {
-					console.log(d);
-				  d3.select(this)
-				      .attr("transform", "translate("+this.x+","+d3.event.dy+")");
-				}				
-							
-				function showDetailsOnClick(d) {
-					//Clean previously populated data
-					//Do this only if you don't have persistent placeholders for data
-					$(".details-on-demand").contents().remove();
-					
-					$.each(d, function(key, value) {
-						$(".details-on-demand").append("<p><strong>"+key+" : </strong>"+value+"</p");
-					});
-				}				
-				//focusChart.exit().remove();
-				//focusChart.order();
-			}
-
-
-			$( "div.details" ).buttonset();
-			$("#onedown").click(function(event){ focusMode = ONEDOWN; drawFocus(fData, focusMode);});
-			$("#twodown").click(function(event){ focusMode = TWODOWN; drawFocus(fData, focusMode);});
-			$("#allup").click(function(event){ focusMode = ALLUP; drawFocus(fData, focusMode);});	
-
-			//Everytime the context is sorted the brushed region has to be resetted
-			$( "div.top-bar" ).buttonset();
-			$("#state-sort").click(function(event){ sortType = STATE; drawContext(cData);});
-			$("#debt-sort").click(function(event){ sortType = DEBT; drawContext(cData);});
-			$("#rank-sort").click(function(event){ sortType = RANK; drawContext(cData);});	
-			$("#coa-sort").click(function(event){ sortType = COA; drawContext(cData);});
-			
-			$(context.selectAll("g")).filter(function(index){console.log(this); return this.id > 40000;}).css("fill-opacity",0.1);
-
-		}); //(document)
-	
-	</script>
 	<div id="main">
 		<div class="top-bar controls">
+			<div id="sort-by">
 			<h3>Sort by:</h3>
 			<input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
 			<input type="radio" id="debt-sort" name="sort"  /><label for="debt-sort">Debt</label>
 			<input type="radio" id="rank-sort" name="sort" disabled="disabled"/><label for="rank-sort">Rank</label>
 			<input type="radio" id="coa-sort" name="sort" checked="checked"/><label for="coa-sort">COA</label>
+		</div>
+		<div id="filter-by">
+			<h3>Filter by:</h3>
+			<p>
+				<label for="filter">Control type:</label>
+			<input type="radio" id="private-filter" name="filter" /><label for="private-filter">Private</label>
+			<input type="radio" id="public-filter" name="filter"  /><label for="public-filter">Public</label>
+			<input type="radio" id="all-filter" name="filter" checked="checked"/><label for="all-filter">All</label>
+		</p>
+			<p>
+			    <label for="debt">Debt range:</label>
+			    <input type="text" id="debt" style="border: 0; color: #f6931f; font-weight: bold;" />
+			</p>
+			<div id="debt-slider-range"></div>
+			<p>
+			    <label for="coa">COA range:</label>
+			    <input type="text" id="coa" style="border: 0; color: #f6931f; font-weight: bold;" />
+			</p>
+ 		 <div id="coa-slider-range"></div>
+			
+		</div>
+			
 		</div>
 		<div class="left-sidebar context">
 
@@ -522,17 +55,24 @@
 		<div class="right-sidebar controls">
 		</div>
 		<div class="left-sidebar focus">
+			<div>
+				<input type="radio" id="onedown" name="radio"/><label for="onedown">onedown</label>
+				<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">twodown</label>
+				<input type="radio" id="allup" name="radio"  /><label for="allup">Allup</label>
+			</div>
 		</div>
 		<div class="left-sidebar states">
 		</div>
 		<div class="left-sidebar details">
-			<input type="radio" id="onedown" name="radio" /><label for="onedown">onedown</label>
-			<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">twodown</label>
-			<input type="radio" id="allup" name="radio" /><label for="allup">Allup</label>
+			
 			<div class="details-on-demand">
 				<h3 id="school-name"></h3>
 			</div>
 		</div>
 	</div>
-
+	<!-- It is a good practice to load the scripts in the end-->
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+	<script src="js/test.js"></script>
 </body>
