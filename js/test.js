@@ -310,22 +310,25 @@
 				contextChartEnter.append("rect")
 				.attr("width", cx.rangeBand())
 				.attr("y", function(d) {return cy(d.amounts[0].y1); })
-				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); })
-				.style("fill", function(d) { return color(d.amounts[0].name); });
+				.attr("class", "rect1")
+				.attr("height", function(d) { return cy(d.amounts[0].y0) - cy(d.amounts[0].y1); });
+				//.style("fill", function(d) { return color(d.amounts[0].name); });
 						
 				//Rendering second layer													
 				contextChartEnter.append("rect")
 				.attr("width", cx.rangeBand())
+				.attr("class", "rect2")
 				.attr("y", function(d) { return cy(d.amounts[1].y1); })
-				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); })
-				.style("fill", function(d) { return color(d.amounts[1].name); });	
+				.attr("height", function(d) { return cy(d.amounts[1].y0) - cy(d.amounts[1].y1); });
+				//.style("fill", function(d) { return color(d.amounts[1].name); });	
 				
 				//Rendering third layer													
 				contextChartEnter.append("rect")
 				.attr("width", cx.rangeBand())
+				.attr("class", "rect3")
 				.attr("y", function(d) { return cy(d.amounts[2].y1); })
-				.attr("height", function(d) { return cy(d.amounts[2].y0) - cy(d.amounts[2].y1); })
-				.style("fill", function(d) { return color(d.amounts[2].name); });	
+				.attr("height", function(d) { return cy(d.amounts[2].y0) - cy(d.amounts[2].y1); });
+				//.style("fill", function(d) { return color(d.amounts[2].name); });	
 				
 				
 				//set-up brush
@@ -349,8 +352,8 @@
 													var coaCondition = (cf[0] <= d["total"] && d["total"] <= cf[1]);
 													return  conCondition & debCondition & coaCondition; 
 												});
-												context.selectAll(".context-bar").style("fill-opacity", 0.6);
-												filtered.style("fill-opacity", 1);
+												context.selectAll(".rect1, .rect2, .rect3").style("fill", "#aaa");
+												filtered.selectAll(".rect1, .rect2, .rect3").style("fill", "");
 												
 				$("#counter").html("<span style='color: red;'>"+filtered[0].length+"</span> of "+csvData.length+" cases filtered.");
 				highlightStates(fData);
