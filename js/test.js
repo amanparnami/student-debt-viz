@@ -115,7 +115,7 @@
 			var focusMode = TWODOWN;
 			var sortType = COA;
 			
-			var cData = null, fData = null;
+			var cData = [], fData = [], filteredData = [];
 			
 			var width = 480,
 			    height = 250;
@@ -340,8 +340,9 @@
 				.attr("height", cheight + 7);
 				
 				
-				
+				var i = 0;
 				//Filter
+				filteredData = [];
 				var filtered = context.selectAll(".context-bar")
 												.filter(function(d, i) {
 													
@@ -350,10 +351,12 @@
 													var conCondition = (cn == "All")? 1 : (d["control"] == cn || cn == d["control"].slice(0,7));
 													var debCondition = (df[0] <= d["debt"] && d["debt"] <= df[1]);
 													var coaCondition = (cf[0] <= d["total"] && d["total"] <= cf[1]);
+													if(conCondition & debCondition & coaCondition) filteredData[i++] = d;
 													return  conCondition & debCondition & coaCondition; 
 												});
-												context.selectAll(".rect1, .rect2, .rect3").style("fill", "#aaa");
-												filtered.selectAll(".rect1, .rect2, .rect3").style("fill", "");
+												console.log(filteredData.length);
+												context.selectAll(".rect1, .rect2, .rect3").style("display", "none");
+												filtered.selectAll(".rect1, .rect2, .rect3").style("display", "");
 												
 				$("#counter").html("<span style='color: red;'>"+filtered[0].length+"</span> of "+csvData.length+" cases filtered.");
 				highlightStates(fData);
