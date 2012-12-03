@@ -57,6 +57,22 @@
 	
 	}
 	
+	.context-bar .rect1 {
+		fill: #1f77b4;
+	}
+	
+	.context-bar .rect2 {
+		fill: #ff7f0e;
+	}
+	
+	.context-bar .rect3 {
+		fill: #2ca02c;
+	}
+	
+	.context-bar .unfilter {
+		fill: #aaa;
+	}
+	
 	.focus-bar {
 		fill: red;
 	}
