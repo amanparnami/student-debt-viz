@@ -19,46 +19,62 @@
 	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
 
 	<div id="main">
-		<div class="top-bar controls">
-			<div id="sort-by">
-			<h3>Sort by:</h3>
-			<input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
-			<input type="radio" id="debt-sort" name="sort"  /><label for="debt-sort">Debt</label>
-			<input type="radio" id="rank-sort" name="sort" disabled="disabled"/><label for="rank-sort">Rank</label>
-			<input type="radio" id="coa-sort" name="sort" checked="checked"/><label for="coa-sort">COA</label>
-		</div>
-		<div id="filter-by">
-			<h3>Filter by:</h3>
-			<p>
-				<label for="filter">Control type:</label>
-			<input type="radio" id="private-filter" name="filter" /><label for="private-filter">Private</label>
-			<input type="radio" id="public-filter" name="filter"  /><label for="public-filter">Public</label>
-			<input type="radio" id="all-filter" name="filter" checked="checked"/><label for="all-filter">All</label>
-		</p>
-			<p>
-			    <label for="debt">Debt range:</label>
-			    <input type="text" id="debt" style="border: 0; color: #f6931f; font-weight: bold;" />
-			</p>
-			<div id="debt-slider-range"></div>
-			<p>
-			    <label for="coa">COA range:</label>
-			    <input type="text" id="coa" style="border: 0; color: #f6931f; font-weight: bold;" />
-			</p>
- 		 <div id="coa-slider-range"></div>
-			
-		</div>
-			
-		</div>
+		<h1 id="project-title">Student Debt Viz</h1>
 		<div class="left-sidebar context">
-			<h3 id="counter"></h3>
+			<div class="top-bar">
+				<div id="sort-by">
+					<h3 style="display: inline;">Sort by&nbsp;</h3>
+					<input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
+					<input type="radio" id="debt-sort" name="sort"  /><label for="debt-sort">Debt</label>
+					<input type="radio" id="grant-sort" name="sort"  /><label for="grant-sort">Grant</label>
+					<input type="radio" id="coa-sort" name="sort" checked="checked"/><label for="coa-sort">COA</label>
+				</div>
+				<div id="legend">
+				
+				</div>
+		</div>
+			<!--input id="project" />
+			<input type="hidden" id="project-id" />
+			<p id="project-description"></p-->
 		</div>
 		<div class="right-sidebar controls">
+			<h3 id="counter"></h3>
+			<div id="filter-by">
+				<h3>Filter by:</h3>
+				<div class="filter">
+					<p class="filter-label">Control type</p>
+					<input type="radio" id="private-filter" name="control-filter" /><label for="private-filter">Private</label>
+					<input type="radio" id="public-filter" name="control-filter"  /><label for="public-filter">Public</label>
+					<input type="radio" id="all-filter" name="control-filter" checked="checked"/><label for="all-filter">All</label>
+				</div>
+				<div class="filter">
+					<p class="filter-label">Size</p>
+					<input type="radio" id="small-filter" name="size-filter" /><label for="small-filter">Small</label>
+					<input type="radio" id="midsize-filter" name="size-filter"  /><label for="midsize-filter">Midsize</label>
+					<input type="radio" id="large-filter" name="size-filter"/><label for="large-filter">Large</label>
+					<input type="radio" id="all-size-filter" name="size-filter" checked="checked"/><label for="all-size-filter">All</label>
+				</div>
+				<div class="filter">
+			    <span class="filter-label">Debt range&nbsp;</span>
+			    <span id="debt-range" style="color: #d62728;" ></span>
+					<div id="debt-slider-range"></div>
+				</div>
+				
+				<div class="filter">
+			    <span class="filter-label">COA range&nbsp;</span>
+			    <span id="coa-range" style="color: #d62728;"></span>
+					<div id="coa-slider-range"></div>
+				</div>
+ 		 	 	
+			</div>
 		</div>
+		
 		<div class="left-sidebar focus">
-			<div>
-				<input type="radio" id="onedown" name="radio"/><label for="onedown">onedown</label>
-				<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">twodown</label>
-				<input type="radio" id="allup" name="radio"  /><label for="allup">Allup</label>
+			<div id="axis-control">
+				<h3 style="display: inline;">Change axis&nbsp;</h3>
+				<input type="radio" id="onedown" name="radio"/><label for="onedown">Loans</label>
+				<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">Debt and Grants</label>
+				<input type="radio" id="allup" name="radio"  /><label for="allup">COA</label>
 			</div>
 		</div>
 		<div class="left-sidebar states">
@@ -70,7 +86,7 @@
 				<p id="grant-amount"></p>
 			</div>
 		</div>
-	</div>
+	</div> <!-- main div-->
 	<!-- It is a good practice to load the scripts in the end-->
 	<script src="http://d3js.org/d3.v3.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
