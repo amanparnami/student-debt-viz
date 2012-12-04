@@ -3,8 +3,13 @@
 	}
 	
 	div#main {
-		width: 1200px;
+		width: 1350px;
 		height: 600px;
+	}
+
+	#project-title {
+		margin: 5 auto;
+		
 	}
 
 	.axis path,
@@ -29,20 +34,24 @@
 	}
 	
 	.controls {
-		width: 100%;
+		border: 1px solid #cacaca;
 		padding: 5px 10px;
 		background-color: #c7c7c7;
 		color: #636363;
 	}
 	
 	#counter {
-		position: absolute;
-		top: 50px;
-		left: 960px;
+
 	}
 	
 	.left-sidebar {
 		float: left;
+	}
+	
+	.context {
+		border: 1px solid #cacaca;
+		background-color: #cdcdcd;
+		margin: 0 10px 10px 0;
 	}
 	
 	.right-sidebar {
@@ -51,6 +60,8 @@
 	
 	.focus {
 		clear: both;
+		background-color: #cacaca;
+		margin: 10px 10px 10px 0;
 	}
 	
 	.context-bar {
@@ -58,15 +69,15 @@
 	}
 	
 	.context-bar .rect1 {
-		fill: #1f77b4;
+		fill: #DEEBF7;
 	}
 	
 	.context-bar .rect2 {
-		fill: #ff7f0e;
+		fill: #9ECAE1;
 	}
 	
 	.context-bar .rect3 {
-		fill: #2ca02c;
+		fill: #3182BD;
 	}
 	
 	.context-bar .unfilter {
@@ -77,13 +88,34 @@
 		fill: red;
 	}
 	
-	#sort-by, #filter-by {
-		display: inline;
-		float: left;
+	#sort-by {
+		margin: 10px 5px;
+	}
+	
+	#axis-control {
+		margin: 10px 5px;
+	}
+	
+	div.filter {
+		margin: 10px 5px;
+	}
+	
+	.legend {
+		position: absolute;
+		top: 10px;
+		left: 900px;
+	}
+	
+	div.filter .filter-label {
+		font-weight: bold;
 	}
 	
 	.selected {
 		fill: red;
+	}
+	
+	#debt-slider-range, #coa-slider-range {
+		margin: 6px 0px;
 	}
 	
 	#states path {
