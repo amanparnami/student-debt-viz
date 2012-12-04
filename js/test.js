@@ -92,7 +92,7 @@
 			var legend = d3.select("div#legend").append("svg").attr("height",60);
 	
 			var color = d3.scale.ordinal()
-			.range(["DEEBF7", "9ECAE1", "3182BD"]);//["#1f77b4","#ff7f0e","#2ca02c"]);
+			.range(["E6550D", "FDAE6B", "FEE6CE"]);//["#1f77b4","#ff7f0e","#2ca02c"]);
 			
 			//Filter UI variables
 			var debtRange =[];
@@ -101,6 +101,7 @@
 			//Filter logic variables
 			var controlFilter = "";
 			var sizeFilter = "";
+			var stateFilter = "";
 			var debtFilter = [];
 			var coaFilter = [];
 			
@@ -154,11 +155,18 @@
 			    .enter().append("path")
 			      .attr("d", path)
 						.attr("data-state", function(d) {return d.properties.name;})
+						.on("mouseover",function(d) {d3.select(this).style("stroke","red"); highlightCasesOnStateHover(d);})
+						.on("mouseout", function(d) {d3.select(this).style("stroke","white"); stateFilter = "All"; drawContext(cData);})
 						/*.on("click", click)*/;
 			});
 			
 			function click(d) {
 				d3.select(this).style("fill", "red");
+			}
+			
+			function highlightCasesOnStateHover(d) {
+				stateFilter = d.properties.name;
+				drawContext(cData);
 			}
 			
 			function highlightStates (fData) {
@@ -223,8 +231,10 @@
 				// Initializing the filters
 				controlFilter = "All";
 				sizeFilter = "All";
+				stateFilter = "All";
 				debtFilter = debtRange;
 				coaFilter = coaRange;
+				
 				//This piece of code to setup sliders occurs here in order force it to use values of debtRange
 				//and coaRange
 				$( "#debt-slider-range" ).slider({
@@ -369,7 +379,9 @@
 				.enter().append("g")
 				.attr("class", "context-bar")
 				.attr("transform", function(d) { return "translate(" + cx(d.id) + ",0)"; })
-				.attr("id", function(d){return d.id;});
+				.attr("id", function(d){return d.id;})
+				.on("mouseover",function(d) {d3.select(this).attr("fill-opacity",1); showDetailsOnClick(d);})
+				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6); hideDetailsOnDemand(d);});
 				
 				//Rendering first layer
 				contextChartEnter.append("rect")
@@ -412,16 +424,17 @@
 				var filtered = context.selectAll(".context-bar")
 												.filter(function(d, i) {
 													
-													var df = debtFilter, cf = coaFilter, cn = controlFilter, sf = sizeFilter;
+													var df = debtFilter, cf = coaFilter, cn = controlFilter, sf = sizeFilter, st = stateFilter;
 													
 													var conCondition = (cn == "All")? 1 : (d["control"] == cn || cn == d["control"].slice(0,7));
 													var sizeCondition = (sf == "All")? 1 : (d["degree_urbanization"] == sf);
 													var debCondition = (df[0] <= d["debt"] && d["debt"] <= df[1]);
 													var coaCondition = (cf[0] <= d["total"] && d["total"] <= cf[1]);
-													if(conCondition & debCondition & coaCondition) filteredData[i++] = d;
-													return  conCondition & debCondition & coaCondition & sizeCondition; 
+													var stateCondition = (st == "All")? 1 : (d["state"] == st);
+													if(conCondition & debCondition & coaCondition & sizeCondition & stateCondition) filteredData[i++] = d;
+													return  conCondition & debCondition & coaCondition & sizeCondition & stateCondition; 
 												});
-												console.log(filteredData.length);
+												//console.log(filteredData.length);
 												context.selectAll(".rect1, .rect2, .rect3").style("fill", "#acacac");
 												filtered.selectAll(".rect1, .rect2, .rect3").style("fill", "");
 												
@@ -447,6 +460,26 @@
 						}
 				}		
 				
+				function showDetailsOnClick(d) {
+					//Clean previously populated data
+					//Do this only if you don't have persistent placeholders for data
+					$(".details-on-demand").contents().remove();
+					
+					$.each(d, function(key, value) {
+						key = (HEADER_NAME_MAP[key])? HEADER_NAME_MAP[key] : key;
+						if(key != "amounts" && key != "total" && key != "id") {
+							if(key == "name") {
+								$(".details-on-demand").append("<h3>"+value+"</h3>");
+							} else {
+								$(".details-on-demand").append("<p>"+key+": <strong>"+value+"</strong></p>");
+							}
+					 }
+					});
+				}				
+				
+				function hideDetailsOnDemand(d) {
+					$(".details-on-demand").contents().remove();
+				}
 				contextChart.exit().remove();
 				contextChart.order();								
 			}
