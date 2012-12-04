@@ -77,6 +77,7 @@
 			// .attr("height",fheight + fmargin.top + fmargin.bottom+100)
 	
 			var context = d3.select("div.context").append("svg")
+			.attr("id", "context-svg")
 			.attr("width", cwidth + cmargin.left + cmargin.right)
 			.attr("height",cheight + cmargin.top + cmargin.bottom).append("g")
 			.attr("id", "context")
@@ -88,8 +89,10 @@
 			.attr("id","focus")
 			.attr("transform", "translate(" + fmargin.left + "," + fmargin.top + ")");
 	
+			var legend = d3.select("div#legend").append("svg").attr("height",60);
+	
 			var color = d3.scale.ordinal()
-			.range(["#1f77b4","#ff7f0e","#2ca02c"]);
+			.range(["DEEBF7", "9ECAE1", "3182BD"]);//["#1f77b4","#ff7f0e","#2ca02c"]);
 			
 			//Filter UI variables
 			var debtRange =[];
@@ -97,6 +100,7 @@
 			
 			//Filter logic variables
 			var controlFilter = "";
+			var sizeFilter = "";
 			var debtFilter = [];
 			var coaFilter = [];
 			
@@ -109,16 +113,27 @@
 			//Sort types
 			var STATE = 0;
 			var DEBT = 1;
-			var RANK = 2;
+			var GRANT = 2;
 			var COA = 3;
+			
+			var HEADER_NAME_MAP = {"average_amount_any_loan_aid":"Avg. Loan", 
+														"average_amount_personal_contribution":"Avg. Personal Contribution", 
+														"average_amount_any_grant_aid": "Avg. Grant",
+														"average_coa": "Avg. COA",
+														"control": "Control Type",
+														"degree_urbanization": "Degree Urbanization",
+														"size_category": "Size",
+														"debt" : "Avg. Debt",
+														"state" : "State"
+													};
 			
 			var focusMode = TWODOWN;
 			var sortType = COA;
 			
 			var cData = [], fData = [], filteredData = [];
 			
-			var width = 480,
-			    height = 250;
+			var width = 700,
+			    height = 500;
 			
 			var projection = d3.geo.albersUsa()
 			    .scale(width)
@@ -169,7 +184,7 @@
 			}
 			
 			d3.csv("data/merged_files_less_schools.csv", function(error,csvData) {
-				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid", ]);
+				color.domain(["average_amount_any_loan_aid", "average_amount_personal_contribution", "average_amount_any_grant_aid"]);
 				
 				// Convert strings to numbers.
 				csvData.forEach(function(d, i) {
@@ -207,6 +222,7 @@
 				cData = csvData;
 				// Initializing the filters
 				controlFilter = "All";
+				sizeFilter = "All";
 				debtFilter = debtRange;
 				coaFilter = coaRange;
 				//This piece of code to setup sliders occurs here in order force it to use values of debtRange
@@ -217,16 +233,16 @@
 				            max: debtRange[1],
 				            values: debtRange,
 				            slide: function( event, ui ) {
-				                $( "#debt" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
-												var filtered = context.selectAll(".context-bar").filter(function(d, i) {
-													return (d["debt"] > ui.values[ 0 ] && d["debt"] < ui.values[ 1 ]); });
+				                $( "#debt-range" ).text( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+												// var filtered = context.selectAll(".context-bar").filter(function(d, i) {
+												// 	return (d["debt"] > ui.values[ 0 ] && d["debt"] < ui.values[ 1 ]); });
 
 													debtFilter[0] = ui.values[ 0 ];
 													debtFilter[1] = ui.values[ 1 ]
 													drawContext(cData);
 				            }
 				        });
-				        $( "#debt" ).val( "$" + $( "#debt-slider-range" ).slider( "values", 0 ) +
+				        $( "#debt-range" ).text( "$" + $( "#debt-slider-range" ).slider( "values", 0 ) +
 				            " - $" + $( "#debt-slider-range" ).slider( "values", 1 ) );
 				
 				
@@ -236,9 +252,9 @@
 				            max: coaRange[1],
 				            values: coaRange,
 				            slide: function( event, ui ) {
-				                $( "#coa" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
-												var filtered = context.selectAll(".context-bar").filter(function(d, i) {
-													return (d["total"] > ui.values[ 0 ] && d["total"] < ui.values[ 1 ]); });
+				                $( "#coa-range" ).text( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+												// var filtered = context.selectAll(".context-bar").filter(function(d, i) {
+												// 													return (d["total"] > ui.values[ 0 ] && d["total"] < ui.values[ 1 ]); });
 													
 													coaFilter[0] = ui.values[ 0 ];
 													coaFilter[1] = ui.values[ 1 ]
@@ -246,9 +262,39 @@
 													drawContext(cData);
 				            }
 				        });
-				        $( "#coa" ).val( "$" + $( "#coa-slider-range" ).slider( "values", 0 ) +
+				        $( "#coa-range" ).text( "$" + $( "#coa-slider-range" ).slider( "values", 0 ) +
 				            " - $" + $( "#coa-slider-range" ).slider( "values", 1 ) );
-				
+										
+										// var autoCompleteData = new Array();
+										// 		var k = 0;
+										// 		$.each(cData, function(key, value) {
+										// 			autoCompleteData[k]["label"] = value.name;
+										// 			autoCompleteData[k]["value"] = value.state;
+										// 			k++;
+										// 		});
+										// 
+										// 						        $( "#project" ).autocomplete({
+										// 						            minLength: 0,
+										// 						            source: autoCompleteData,
+										// 						            focus: function( event, ui ) {
+										// 						                $( "#project" ).val( ui.item.name );
+										// 						                return false;
+										// 						            },
+										// 						            select: function( event, ui ) {
+										// 						                $( "#project" ).val( ui.item.name );
+										// 						                $( "#project-id" ).val( ui.item.id );
+										// 						                $( "#project-description" ).html( ui.item.state );
+										// 						                // $( "#project-icon" ).attr( "src", "images/" + ui.item.icon );
+										//  
+										// 						                return false;
+										// 						            }
+										// 						        })
+										// 						        .data( "autocomplete" )._renderItem = function( ul, item ) {
+										// 						            return $( "<li>" )
+										// 						                .data( "item.autocomplete", item )
+										// 						                .append( "<a>" + item.name + "<br>" + item.state + "</a>" )
+										// 						                .appendTo( ul );
+										// 						        };
 
 				//csvData = sortData(csvData, sortType);
 				
@@ -274,8 +320,8 @@
 					case DEBT:
 					return csvData.sort(function(a,b) {return (a.debt==b.debt)? 0 : ((a.debt<b.debt)? -1:1);});
 					break;
-					case RANK:
-					return csvData.sort(function(a,b) {return (a.rank==b.rank)? 0 : ((a.rank<b.rank)? -1:1);});
+					case GRANT:
+					return csvData.sort(function(a,b) {return (a.average_amount_any_grant_aid==b.average_amount_any_grant_aid)? 0 : ((a.average_amount_any_grant_aid<b.average_amount_any_grant_aid)? -1:1);});
 					break;
 					case COA:
 					return csvData.sort(function(a,b) {return (a.total==b.total)? 0 : ((a.total<b.total)? -1:1);});
@@ -296,6 +342,25 @@
 				fy.domain(cy.domain());
 				fx.domain(cx.domain().slice(20,40));
 				fData = csvData.slice(20,40);
+				
+				var legendEnter = legend.selectAll(".legend")
+				      .data(color.domain().slice().reverse())
+				    .enter().append("g")
+				      .attr("class", "legend")
+				      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+				  legendEnter.append("rect")
+				      .attr("x", cwidth + cmargin.left - 18)
+				      .attr("width", 18)
+				      .attr("height", 18)
+				      .style("fill", color);
+
+				  legendEnter.append("text")
+				      .attr("x", cwidth + cmargin.left - 24)
+				      .attr("y", 9)
+				      .attr("dy", ".35em")
+				      .style("text-anchor", "end")
+				      .text(function(d) { return HEADER_NAME_MAP[d]; });
 				
 				var contextChart = context.selectAll("g").data(csvData);
 				var brush = d3.svg.brush().x(cx).extent([20,40]).on("brush", brushed);
@@ -331,6 +396,7 @@
 				//.style("fill", function(d) { return color(d.amounts[2].name); });	
 				
 				
+				
 				//set-up brush
 				context.append("g")
 				.attr("class", "x brush")
@@ -346,17 +412,18 @@
 				var filtered = context.selectAll(".context-bar")
 												.filter(function(d, i) {
 													
-													var df = debtFilter, cf = coaFilter, cn = controlFilter;
+													var df = debtFilter, cf = coaFilter, cn = controlFilter, sf = sizeFilter;
 													
 													var conCondition = (cn == "All")? 1 : (d["control"] == cn || cn == d["control"].slice(0,7));
+													var sizeCondition = (sf == "All")? 1 : (d["degree_urbanization"] == sf);
 													var debCondition = (df[0] <= d["debt"] && d["debt"] <= df[1]);
 													var coaCondition = (cf[0] <= d["total"] && d["total"] <= cf[1]);
 													if(conCondition & debCondition & coaCondition) filteredData[i++] = d;
-													return  conCondition & debCondition & coaCondition; 
+													return  conCondition & debCondition & coaCondition & sizeCondition; 
 												});
 												console.log(filteredData.length);
-												context.selectAll(".rect1, .rect2, .rect3").style("display", "none");
-												filtered.selectAll(".rect1, .rect2, .rect3").style("display", "");
+												context.selectAll(".rect1, .rect2, .rect3").style("fill", "#acacac");
+												filtered.selectAll(".rect1, .rect2, .rect3").style("fill", "");
 												
 				$("#counter").html("<span style='color: red;'>"+filtered[0].length+"</span> of "+csvData.length+" cases filtered.");
 				highlightStates(fData);
@@ -364,7 +431,7 @@
 				
 				function brushed() {
 				    var s = d3.event.target.extent();
-				    if (s[1]-s[0] < fwidth) {
+				    if (s[1]-s[0] <= 20) {
 							fx.domain(brush.empty() ? cx.domain() : cx.domain().slice(s[0], s[1]));	
 							focus.select(".x.axis").call(fxAxis);
 							fData =	cData.slice(s[0],s[1]);
@@ -374,7 +441,8 @@
 							highlightStates(fData);						
 				    } else{
 							//Restrict the size of brush to the width of focus area
-							d3.event.target.extent([s[0],s[0]+fwidth-1]); 
+							//d3.event.target.extent([s[0],s[0]+fwidth-1]); 
+							d3.event.target.extent([s[0],s[0]+20]);
 							d3.event.target(d3.select(this));
 						}
 				}		
@@ -451,9 +519,8 @@
 				.attr("transform", function(d) { return "translate(" + fx(d.id) + ",0)"; })
 				.attr("fill-opacity",.6)
 				.attr("id", function(d){return d.id;})
-				.on("mouseover",function(d) {d3.select(this).attr("fill-opacity",1);})
-				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6);})
-				.on("click", function(d) {showDetailsOnClick(d);});
+				.on("mouseover",function(d) {d3.select(this).attr("fill-opacity",1); showDetailsOnClick(d);})
+				.on("mouseout", function(d) {d3.select(this).attr("fill-opacity",.6); hideDetailsOnDemand(d);});
 				
 				//Rendering first layer
 				focusChartEnter.append("rect")
@@ -491,9 +558,20 @@
 					$(".details-on-demand").contents().remove();
 					
 					$.each(d, function(key, value) {
-						$(".details-on-demand").append("<p><strong>"+key+" : </strong>"+value+"</p");
+						key = (HEADER_NAME_MAP[key])? HEADER_NAME_MAP[key] : key;
+						if(key != "amounts" && key != "total" && key != "id") {
+							if(key == "name") {
+								$(".details-on-demand").append("<h3>"+value+"</h3>");
+							} else {
+								$(".details-on-demand").append("<p>"+key+": <strong>"+value+"</strong></p>");
+							}
+					 }
 					});
 				}				
+				
+				function hideDetailsOnDemand(d) {
+					$(".details-on-demand").contents().remove();
+				}
 				//focusChart.exit().remove();
 				//focusChart.order();
 			}
@@ -508,7 +586,7 @@
 			$( "div#sort-by" ).buttonset();
 			$("#state-sort").click(function(event){ sortType = STATE; drawContext(cData);});
 			$("#debt-sort").click(function(event){ sortType = DEBT; drawContext(cData);});
-			$("#rank-sort").click(function(event){ sortType = RANK; drawContext(cData);});	
+			$("#grant-sort").click(function(event){ sortType = GRANT; drawContext(cData);});	
 			$("#coa-sort").click(function(event){ sortType = COA; drawContext(cData);});
 			
 			
@@ -528,8 +606,27 @@
 				drawContext(cData);
 			});
 			
+			$("#small-filter").click(function(event){ 
+				sizeFilter = "Small";
+				drawContext(cData);
+			});	
+			$("#midsize-filter").click(function(event){
+				sizeFilter = "Midsize";
+				drawContext(cData);
+			});
+			
+			$("#large-filter").click(function(event){
+				sizeFilter = "Large";
+				drawContext(cData);
+			});
+			
+			$("#all-size-filter").click(function(event){
+				sizeFilter = "All";
+				drawContext(cData);
+			});
 			
 			// $(context.selectAll("g")).filter(function(index){console.log(this); return parseInt(this.id) > 40000;}).css("fill-opacity",0.1);
-			
+ 
+			        
 
 		}); //(document)
