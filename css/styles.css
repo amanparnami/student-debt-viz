@@ -69,15 +69,15 @@
 	}
 	
 	.context-bar .rect1 {
-		fill: #DEEBF7;
+		fill: #E6550D;
 	}
 	
 	.context-bar .rect2 {
-		fill: #9ECAE1;
+		fill: #FDAE6B;
 	}
 	
 	.context-bar .rect3 {
-		fill: #3182BD;
+		fill: #FEE6CE;
 	}
 	
 	.context-bar .unfilter {
@@ -122,10 +122,6 @@
 	  fill: #aaa;
 	  stroke: #fff;
 	  stroke-width: 1.5px;
-	}
-
-	#states path:hover {
-	  stroke: white;
 	}
 	
   .clearfix:after {
