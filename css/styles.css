@@ -35,9 +35,11 @@
 	
 	.controls {
 		border: 1px solid #cacaca;
+		height: 298px; /* matching the context view*/
 		padding: 5px 10px;
 		background-color: #c7c7c7;
 		color: #636363;
+		margin-bottom: 5px;
 	}
 	
 	#counter {
@@ -49,9 +51,8 @@
 	}
 	
 	.context {
-		border: 1px solid #cacaca;
-		background-color: #cdcdcd;
-		margin: 0 10px 10px 0;
+		background-color: #cacaca;;
+		margin: 0 5px 5px 0;
 	}
 	
 	.right-sidebar {
@@ -61,7 +62,25 @@
 	.focus {
 		clear: both;
 		background-color: #cacaca;
-		margin: 10px 10px 10px 0;
+		margin: 0 5px 10px 0;
+	}
+	
+	.focus-bar {
+		cursor: pointer;
+	}
+	
+	.states {
+		background-color: #cacaca;
+		margin: 0 5px 10px 0;
+		padding-left: 10px;
+	}
+	
+	.details {
+		width: 251px; /*Matching the width of the controls area*/
+		height: 480px;
+		background-color: #CCCCCC;
+		margin: 0 0 10px 0;
+		padding: 10px;
 	}
 	
 	.context-bar {
@@ -85,7 +104,7 @@
 	}
 	
 	.focus-bar {
-		fill: red;
+		fill: #E6550D;
 	}
 	
 	#sort-by {
@@ -114,12 +133,14 @@
 		fill: red;
 	}
 	
-	#debt-slider-range, #coa-slider-range {
+	#debt-range-slider, #coa-range-slider, #size-range-slider {
 		margin: 6px 0px;
 	}
 	
+	
 	#states path {
-	  fill: #aaa;
+		cursor: pointer;
+	  fill: #969696;
 	  stroke: #fff;
 	  stroke-width: 1.5px;
 	}
