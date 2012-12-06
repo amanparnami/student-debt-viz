@@ -173,15 +173,15 @@
 			.attr("id", "states");
 
 			d3.json("assets/us-states.json", function(error, json) {
-			  states.selectAll("path")
-			      .data(json.features)
-			    .enter().append("path")
-			      .attr("d", path)
-						.attr("data-state", function(d) {return d.properties.name;})
-						.on("click", onStateClick)
-						.append("title").text(function(d) {return d.properties.name;});
-						
-			});
+								  states.selectAll("path")
+								      .data(json.features)
+								    .enter().append("path")
+								      .attr("d", path)
+											.attr("data-state", function(d) {return d.properties.name;})
+											.on("click", onStateClick)
+											.append("title").text(function(d) {return d.properties.name;});
+											
+								});
 			
 			function onStateClick(d) {
 				var stateName = d.properties.name;
@@ -794,8 +794,7 @@
 				drawContext(cData);
 			});
 			
-			$("#sort-by").tooltip({
-				content: "huaha" });
+			$(document).tooltip();
 			// $(context.selectAll("g")).filter(function(index){console.log(this); return parseInt(this.id) > 40000;}).css("fill-opacity",0.1);
  
 			        
