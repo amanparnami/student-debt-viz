@@ -46,6 +46,12 @@
 
 	}
 	
+	.negativeAxis {
+		position: absolute;
+		top: 645px;
+		left: 17px;
+	}
+	
 	.left-sidebar {
 		float: left;
 	}
@@ -87,15 +93,15 @@
 	
 	}
 	
-	.context-bar .rect1 {
+	.rect1 {
 		fill: #E6550D;
 	}
 	
-	.context-bar .rect2 {
+	.rect2 {
 		fill: #FDAE6B;
 	}
 	
-	.context-bar .rect3 {
+	.rect3 {
 		fill: #FEE6CE;
 	}
 	
