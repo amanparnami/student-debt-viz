@@ -98,6 +98,11 @@
 		padding: 10px;
 	}
 	
+	#default-dod-msg {
+		font-size: 14px;
+		color: #636363;
+	}
+	
 	.context-bar {
 	
 	}
@@ -129,7 +134,7 @@
 	}
 	
 	#search {
-		margin: 10px 5px;
+		margin: 10px 10px;
 		display: inline-block;
 		float: right;
 	}
