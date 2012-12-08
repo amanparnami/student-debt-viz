@@ -197,6 +197,11 @@
 					isStateSelected = true;
 					
 					stateFilter = d.properties.name;
+					
+					//This is to ensure that the search and filters do not conflict
+					if($(".remove").is(":visible")) {
+						$(".remove").trigger("click");
+					}
 					drawContext(cData);
 				} else {
 					//If a state is selected already
@@ -301,7 +306,7 @@
 				            range: true,
 				            min: debtRange[0],
 				            max: debtRange[1],
-				            values: debtRange,
+				            values: [debtRange[0], debtRange[1]],
 				            slide: function( event, ui ) {
 				                $( "#debt-range" ).text( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
 												// var filtered = context.selectAll(".context-bar").filter(function(d, i) {
@@ -314,6 +319,9 @@
 												debtFilter[0] = ui.values[ 0 ];
 												debtFilter[1] = ui.values[ 1 ];
 												drawContext(cData);
+												if($(".remove").is(":visible")) {
+													$(".remove").trigger("click");
+												}
 											}
 										}
 				        });
@@ -325,7 +333,7 @@
 				            range: true,
 				            min: coaRange[0],
 				            max: coaRange[1],
-				            values: coaRange,
+				            values: [coaRange[0],coaRange[1]],
 				            slide: function( event, ui ) {
 				                $( "#coa-range" ).text( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
 												// var filtered = context.selectAll(".context-bar").filter(function(d, i) {
@@ -337,6 +345,9 @@
 											coaFilter[0] = ui.values[ 0 ];
 											coaFilter[1] = ui.values[ 1 ];
 											drawContext(cData);
+											if($(".remove").is(":visible")) {
+												$(".remove").trigger("click");
+											}
 										}
 											
 										}
@@ -374,6 +385,9 @@
 														sizeFilter[0] = ui.values[0];
 														sizeFilter[1] = ui.values[1];
 									            drawContext(cData);
+															if($(".remove").is(":visible")) {
+																$(".remove").trigger("click");
+															}
 													}
 								        }
 								    });
@@ -429,14 +443,38 @@
 																                
 																
 																controlFilter = "All";
+																$("#all-filter").attr("checked","checked").button("refresh");
 																
 																sizeFilter = [0,5];
+																$("#size-range-slider").slider("values",[0,5]);
+																$("#size-range").text(getRealValue(0) + ' - ' + getRealValue(5));
+																
 																urbanFilter = "All";
+																$("#all-urban-filter").attr("checked","checked").button("refresh");
+																
 																stateFilter = "All";
 																debtFilter[0] = debtRange[0];
 																debtFilter[1] = debtRange[1];
+																
+																$("#debt-range-slider").slider("values", [debtRange[0], debtRange[1]]);
+																
+												        $( "#debt-range" ).text( "$" + debtRange[0] + " - $" + debtRange[1]);
+																		
 																coaFilter[0] = coaRange[0];
 																coaFilter[1] = coaRange[1];
+																$("#coa-range-slider").slider("values", coaRange);
+												        $( "#coa-range" ).text( "$" + $( "#coa-range-slider" ).slider( "values", 0 ) +
+												            " - $" + $( "#coa-range-slider" ).slider( "values", 1 ) );
+																		
+																$('.states path[data-state="'+selectedState+'"]').css("fill", "");
+																isStateSelected = false;
+																selectedState = "";
+																stateFilter = "All"; 
+																// $('.filter input[name="control-filter"]').each(function(i) {$(this).button("disable");});
+																// 																$("#size-range-slider").slider("disable");
+																// 																$('.filter input[name="urban-filter"]').each(function(i) {$(this).button("disable");});
+																// 																$("#debt-range-slider").slider("disable");
+																// 																$("#coa-range-slider").slider("disable");
 																showDetailsOnClick(ui.item.d);
 																searchFilter = ui.item.label;
 															 	drawContext(cData);
@@ -463,13 +501,14 @@
 													//reset the filter
 													searchFilter = "";
 													//remove details on demand
-													var details_svg = d3.select("div.details").selectAll("svg");
-													var details_div = $(".details-on-demand");
-					
-													//clear last record  (remove elements)
-													details_svg.remove();		
-													details_div.contents().remove();	
+													hideDetailsOnDemand();
 													
+													//enable filters
+													// $('.filter input[name="control-filter"]').each(function(i) {$(this).button("enable");});
+													// 													$('.filter input[name="urban-filter"]').each(function(i) {$(this).button("enable");});
+													// 													$("#size-range-slider").slider("enable");
+													// 													$("#debt-range-slider").slider("enable");
+													// 													$("#coa-range-slider").slider("enable");
 													drawContext(cData);
 													//correct 'to' field position
 													if($("#search span").length === 0) {
@@ -519,6 +558,7 @@
 					var details_svg = d3.select("div.details").selectAll("svg");
 					var details_div = $(".details-on-demand");
 					
+					$("#default-dod-msg").hide();
 					//clear last record  (remove elements)
 					details_svg.remove();		
 					details_div.contents().remove();			
@@ -628,6 +668,17 @@
 
 				}
 		
+				function hideDetailsOnDemand(d) {
+					var details_svg = d3.select("div.details").selectAll("svg");
+					var details_div = $(".details-on-demand");
+					
+					
+					//clear last record  (remove elements)
+					details_svg.remove();		
+					details_div.contents().remove();
+					$("#default-dod-msg").show();
+				}
+	
 	
 			function drawContext(csvData) {
 				context.selectAll("g").remove();
@@ -739,8 +790,10 @@
 													}
 													return  conCondition & debCondition & coaCondition & urbanCondition & stateCondition & sizeCondition & searchCondition; 
 												});
-												//console.log(filteredData.length);
-												context.selectAll(".rect1, .rect2, .rect3").style("fill", "#acacac");
+												
+												context.selectAll(".rect3").style("fill", "#525252");
+												context.selectAll(".rect2").style("fill","#737373");
+												context.selectAll(".rect1").style("fill","#969696");
 												filtered.selectAll(".rect1, .rect2, .rect3").style("fill", "");
 												
 				$("#counter").html("<span style='color: #E6550D;'>"+filtered[0].length+"</span> of "+csvData.length+" cases shown.");
@@ -765,26 +818,6 @@
 						}
 				}		
 				
-				function showDetailsOnClick(d) {
-					//Clean previously populated data
-					//Do this only if you don't have persistent placeholders for data
-					$(".details-on-demand").contents().remove();
-					
-					$.each(d, function(key, value) {
-						key = (HEADER_NAME_MAP[key])? HEADER_NAME_MAP[key] : key;
-						if(key != "amounts" && key != "total" && key != "id" && key != "size") {
-							if(key == "name") {
-								$(".details-on-demand").append("<h3>"+value+"</h3>");
-							} else {
-								$(".details-on-demand").append("<p>"+key+": <strong>"+value+"</strong></p>");
-							}
-					 }
-					});
-				}				
-				
-				function hideDetailsOnDemand(d) {
-					$(".details-on-demand").contents().remove();
-				}
 				contextChart.exit().remove();
 				contextChart.order();								
 			}
@@ -889,133 +922,14 @@
 				.append("title").text(function(d) {return "Grant: $"+d.average_amount_any_grant_aid;})
 				.transition();
 				
-				focus.selectAll(".rect1, .rect2, .rect3").style("fill", function(d) {return (filteredIDs.indexOf(d.id) != -1)? "":"#aaa"; });
+				focus.selectAll(".rect3").style("fill", function(d) {return (filteredIDs.indexOf(d.id) != -1)? "":"#525252"; });
+				focus.selectAll(".rect2").style("fill",function(d) {return (filteredIDs.indexOf(d.id) != -1)? "":"#737373"; });
+				focus.selectAll(".rect1").style("fill",function(d) {return (filteredIDs.indexOf(d.id) != -1)? "":"#969696"; });
 				
 				focus.append("g")
 				.attr("class", "y axis")
 				.call(fyAxis);
 				
-				//.call(drag);
-				
-				// function dragmove(d) {
-				// 				  d3.select(this)
-				// 				      .attr("transform", "translate("+this.x+","+d3.event.dy+")");
-				// 				}				
-							
-				function showDetailsOnClick(d) {
-					
-						var coa = Math.round(d.average_coa);
-						var details_svg = d3.select("div.details").selectAll("svg");
-						var details_div = $(".details-on-demand");
-					
-						//clear last record  (remove elements)
-						details_svg.remove();		
-						details_div.contents().remove();			
-														
-						// add text fields
-						details_div.append("<h3><strong>"+d.name+"</strong><h3>");			
-						details_div.append("State: <strong>"+d.state+"</strong><br/>");			
-						details_div.append("Size: <strong>"+d.size_category+"</strong><br/>");			
-						details_div.append("Type: <strong>"+d.control+"</strong><br/>");			
-						details_div.append("Urban: <strong>"+d.degree_urbanization+"</strong><br/>");
-						details_div.append("Avg COA: <strong>$"+coa+"</strong><br/>");
-						details_div.append("Avg Debt: <strong>$"+(d.average_amount_any_loan_aid + d.average_amount_personal_contribution)+"</strong>")
-						details_div.append("<p>Enrollment: <strong>"+d.total_enrollment+"</strong></p>");
-					
-						//  histograms...
-					
-						// gender
-						var data = [d.percent_women, d.percent_men];
-						var labels = ["Women", "Men"];
-						makeHistogram(d, data, labels, "Gender");
-						
-						// ethnicity
-						data = [d.percent_white, d.percent_asian_pacific_islander,
-						            d.percent_african_american, d.percent_hispanic, d.percent_native_american, 
-						            d.percent_multiracial, d.percent_race_ethnicity_unknown, 
-						            d.percent_nonresident_alien];
-						labels = ["Caucasian","Asian/Pac-Isld",
-						                    "African American","Hispanic","Native American", 
-						                    "Multiracial","Unknown","Nonresident"];
-						makeHistogram(d, data, labels, "Ethnicity");
-
-					
-						// age
-						data = [d.percent_under_18, d.percent_18_to_19, 
-						            d.percent_20_to_21, d.percent_22_to_24, d.percent_25_to_29, 
-						            d.percent_30_to_34, d.percent_35_to_39, 
-						            d.percent_40_to_49, d.percent_50_to_64, d.percent_65_over,
-						            d.percent_age_unknown];
-						labels = ["<18","18-19", "20-21","22-24","25-29","30-34","35-39",
-						                  "40-49","50-64","65+", "unknown"];
-						makeHistogram(d, data, labels, "Age");
-			
-					};	
-				
-					function makeHistogram(d, data, labels, header){
-										
-						// format histogram area
-						var margin = {top: 20, right: 10, bottom: 10, left: 85},
-				    	width = 248 - margin.left - margin.right,
-				    	height = ((data.length+2)*13) - margin.top - margin.bottom,
-				    	padding = 10;
-					
-						var x0 = d3.max(data);
-
-						var x = d3.scale.linear()
-						    .domain([0, x0])
-						    .range([0, width])
-						    .nice();
-					
-						var y = d3.scale.ordinal()
-						    .domain(d3.range(data.length))
-							.rangeRoundBands([0, height], .2);
-
-						var xAxis = d3.svg.axis()
-						    .scale(x)
-						    .ticks(4)
-					    	.orient("top");
-					
-						var yAxis = d3.svg.axis()
-							.scale(y)
-							.tickValues(labels)
-							.orient("left");
-
-						var svg = d3.select("div.details").append("svg")
-						    .attr("width", width + margin.left + margin.right)
-						    .attr("height", height + margin.top + margin.bottom)
-						    .selectAll(".bar")
-						    .data(data)
-						  .enter()
-						  .append("g")
-						    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-					
-						  svg.append("svg:text")
-					        .attr("x", -6)
-					        .attr("y", function(d, i) { return y(i); })
-					        .attr("dy", ".35em")
-					        .attr("text-anchor", "end");
-			
-	//					var bar = svg.selectAll(".bar")
-	//					svg.selectAll(".bar")
-	//					    .data(data)
-	//					  .enter()
-						  svg.append("rect")
-						    .attr("class", "bar positive")
-						    .attr("x", function(d) { return x(Math.min(0, d)); })
-						    .attr("y", function(d, i) { return y(i); })
-						    .attr("width", function(d) { return Math.abs(x(d) - x(0)); })
-						    .attr("height", y.rangeBand());
-				
-						svg.append("g")
-					    .attr("class", "y axis")
-					    .call(yAxis);
-
-						svg.append("g")
-					    .attr("class", "x axis")
-					    .call(xAxis);
-
-					}
 				}
 				
 				// function hideDetailsOnDemand(d) {
@@ -1043,38 +957,62 @@
 			
 			$("#filter-by").buttonset();
 			$("#private-notprofit-filter").click(function(event){ 
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				controlFilter = "Private not-for-profit";
 				drawContext(cData);
 			});	
 			$("#private-profit-filter").click(function(event){ 
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				controlFilter = "Private for-profit";
 				drawContext(cData);
 			});
 			$("#public-filter").click(function(event){
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				controlFilter = "Public";
 				drawContext(cData);
 			});
 			
 			$("#all-filter").click(function(event){
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				controlFilter = "All";
 				drawContext(cData);
 			});
 			
 			$("#small-filter").click(function(event){ 
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				urbanFilter = "Small";
 				drawContext(cData);
 			});	
 			$("#midsize-filter").click(function(event){
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				urbanFilter = "Midsize";
 				drawContext(cData);
 			});
 			
 			$("#large-filter").click(function(event){
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				urbanFilter = "Large";
 				drawContext(cData);
 			});
 			
 			$("#all-urban-filter").click(function(event){
+				if($(".remove").is(":visible")) {
+					$(".remove").trigger("click");
+				}
 				urbanFilter = "All";
 				drawContext(cData);
 			});
