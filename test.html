@@ -25,18 +25,24 @@
 				<div id="sort-by">
 					<h3 style="display: inline;">Sort by&nbsp;</h3>
 					<input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
-					<input type="radio" id="size-sort" name="sort"  /><label for="size-sort">Size</label>
+					<input type="radio" id="size-sort" name="sort"  /><label title="School Size" for="size-sort">Size</label>
 					<input type="radio" id="debt-sort" name="sort"  /><label title="Debt is sum of personal contribution and loan." for="debt-sort">Debt</label>
 					<input type="radio" id="grant-sort" name="sort"  /><label for="grant-sort">Grant</label>
 					<input type="radio" id="coa-sort" name="sort" checked="checked"/><label title="Cost of Attendance" for="coa-sort">COA</label>
 				</div>
+				<div id="search">
+					<h3 style="display: inline;">Search school&nbsp;</h3>
+					<input id="search-box" />
+					<!--
+					<input type="hidden" id="search-value" />
+					-->
+					<span id="saved-search-value"></span>
+				</div>
 				<div id="legend">
 				
 				</div>
-		</div>
-			<!--input id="project" />
-			<input type="hidden" id="project-id" />
-			<p id="project-description"></p-->
+			</div>
+			
 		</div>
 		<div class="left-sidebar controls">
 			<h3 id="counter"></h3>
@@ -59,19 +65,19 @@
 				
 				<div class="filter">
 			    <span class="filter-label">School size&nbsp;</span>
-			    <span id="size-range" style="color: #d62728;" ></span>
+			    <span id="size-range" style="color: #E6550D;" ></span>
 					<div id="size-range-slider"></div>
 				</div>
 				
 				<div class="filter">
 			    <span class="filter-label">Debt range&nbsp;</span>
-			    <span id="debt-range" style="color: #d62728;" ></span>
+			    <span id="debt-range" style="color: #E6550D;" ></span>
 					<div id="debt-range-slider"></div>
 				</div>
 				
 				<div class="filter">
 			    <span class="filter-label">COA range&nbsp;</span>
-			    <span id="coa-range" style="color: #d62728;"></span>
+			    <span id="coa-range" style="color: #E6550D;"></span>
 					<div id="coa-range-slider"></div>
 				</div>
  		 	 	
@@ -95,6 +101,8 @@
 				<p id="grant-amount"></p>
 			</div>
 		</div>
+		
+		<img class="negativeAxis" src="images/negativeaxis.png"></img>
 	</div> <!-- main div-->
 	<!-- It is a good practice to load the scripts in the end-->
 	<script src="http://d3js.org/d3.v3.min.js"></script>
