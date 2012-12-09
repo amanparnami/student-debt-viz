@@ -11,8 +11,22 @@
 }
 
 	#project-title {
-		margin: 5 auto;
+		margin: 5px 20px 5px 5px;
 		color: #E6550D;
+		display: inline-block;
+	}
+	
+	nav a {
+		text-decoration: none;
+		color: #E6550D;
+		font-weight: bold;
+	}
+
+	nav a:hover {
+		text-decoration: none;
+		color: #E6550D;
+		font-weight: bold;
+		text-decoration: underline;
 	}
 
 	.axis path,
@@ -24,7 +38,7 @@
 	
 	.negativeAxis {
         position: absolute;
-        top: 680px;
+        top: 663px;
         left: 17px;
     }
 	
