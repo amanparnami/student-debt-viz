@@ -1,7 +1,8 @@
+
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
-	<title>Student Debt Viz</title>
+    <title>Student Debt Viz</title>
 </head>
 <!--[if IE]>
 <style type="text/css">
@@ -14,93 +15,98 @@
 </style>
 <![endif]-->
 <body>
-	<!--Stylesheets -->
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+    <!--Stylesheets -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
 
-	<div id="main">
-		<h1 id="project-title">Student Debt Viz</h1>
-		<div class="left-sidebar context">
-			<div class="top-bar">
-				<div id="sort-by">
-					<h3 style="display: inline;">Sort by&nbsp;</h3>
-					<input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
-					<input type="radio" id="size-sort" name="sort"  /><label title="School Size" for="size-sort">Size</label>
-					<input type="radio" id="debt-sort" name="sort"  /><label title="Debt is sum of personal contribution and loan." for="debt-sort">Debt</label>
-					<input type="radio" id="grant-sort" name="sort"  /><label for="grant-sort">Grant</label>
-					<input type="radio" id="coa-sort" name="sort" checked="checked"/><label title="Cost of Attendance" for="coa-sort">COA</label>
-				</div>
-				<div id="legend">
-				
-				</div>
-		</div>
-			<!--input id="project" />
-			<input type="hidden" id="project-id" />
-			<p id="project-description"></p-->
-		</div>
-		<div class="left-sidebar controls">
-			<h3 id="counter"></h3>
-			<div id="filter-by">
-				<h3>Filter by:</h3>
-				<div class="filter">
-					<p class="filter-label">Control type</p>
-					<input type="radio" id="private-profit-filter" name="control-filter" /><label for="private-profit-filter">For-profit</label>
-					<input type="radio" id="private-notprofit-filter" name="control-filter" /><label for="private-notprofit-filter">Private</label>
-					<input type="radio" id="public-filter" name="control-filter"  /><label for="public-filter">Public</label>
-					<input type="radio" id="all-filter" name="control-filter" checked="checked"/><label for="all-filter">All</label>
-				</div>
-				<div class="filter">
-					<p class="filter-label">City Size</p>
-					<input type="radio" id="small-filter" name="urban-filter" /><label for="small-filter">Small</label>
-					<input type="radio" id="midsize-filter" name="urban-filter"  /><label for="midsize-filter">Midsize</label>
-					<input type="radio" id="large-filter" name="urban-filter"/><label for="large-filter">Large</label>
-					<input type="radio" id="all-urban-filter" name="urban-filter" checked="checked"/><label for="all-urban-filter">All</label>
-				</div>
-				
-				<div class="filter">
-			    <span class="filter-label">School size&nbsp;</span>
-			    <span id="size-range" style="color: #E6550D;" ></span>
-					<div id="size-range-slider"></div>
-				</div>
-				
-				<div class="filter">
-			    <span class="filter-label">Debt range&nbsp;</span>
-			    <span id="debt-range" style="color: #E6550D;" ></span>
-					<div id="debt-range-slider"></div>
-				</div>
-				
-				<div class="filter">
-			    <span class="filter-label">COA range&nbsp;</span>
-			    <span id="coa-range" style="color: #E6550D;"></span>
-					<div id="coa-range-slider"></div>
-				</div>
- 		 	 	
-			</div>
-		</div>
-		
-		<div class="left-sidebar focus">
-			<div id="axis-control">
-				<h3 style="display: inline;">Compare&nbsp;</h3>
-				<input type="radio" id="onedown" name="radio"/><label for="onedown">Loans</label>
-				<input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">Debt and Grants</label>
-				<input type="radio" id="allup" name="radio"  /><label for="allup">COA</label>
-			</div>
-		</div>
-		<div class="left-sidebar states">
-		</div>
-		<div class="left-sidebar details">
-			
-			<div class="details-on-demand">
-				<h3 id="school-name"></h3>
-				<p id="grant-amount"></p>
-			</div>
-		</div>
-		
-		<img class="negativeAxis" src="images/negativeaxis.png"></img>
-	</div> <!-- main div-->
-	<!-- It is a good practice to load the scripts in the end-->
-	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
-	<script src="js/scripts.js"></script>
+    <div id="main">
+        <h1 id="project-title">Student Debt Viz</h1>
+        <div class="left-sidebar context">
+            <div class="top-bar">
+                <div id="sort-by">
+                    <h3 style="display: inline;">Sort by&nbsp;</h3>
+                    <input type="radio" id="state-sort" name="sort" /><label for="state-sort">State</label>
+                    <input type="radio" id="size-sort" name="sort"  /><label title="School Size" for="size-sort">Size</label>
+                    <input type="radio" id="debt-sort" name="sort"  /><label title="Debt is sum of personal contribution and loan." for="debt-sort">Debt</label>
+                    <input type="radio" id="grant-sort" name="sort"  /><label for="grant-sort">Grant</label>
+                    <input type="radio" id="coa-sort" name="sort" checked="checked"/><label title="Cost of Attendance" for="coa-sort">COA</label>
+                </div>
+                <div id="search">
+                    <h3 style="display: inline;">Search school&nbsp;</h3>
+                    <input id="search-box" />
+                    <!--
+                    <input type="hidden" id="search-value" />
+                    -->
+                    <span id="saved-search-value"></span>
+                </div>
+                <div id="legend">
+                
+                </div>
+             </div>
+            
+        </div>
+        <div class="left-sidebar controls">
+            <h3 id="counter"></h3>
+            <div id="filter-by">
+                <h3>Filter by:</h3>
+                <div class="filter">
+                    <p class="filter-label">Control type</p>
+                    <input type="radio" id="private-profit-filter" name="control-filter" /><label for="private-profit-filter">For-profit</label>
+                    <input type="radio" id="private-notprofit-filter" name="control-filter" /><label for="private-notprofit-filter">Private</label>
+                    <input type="radio" id="public-filter" name="control-filter"  /><label for="public-filter">Public</label>
+                    <input type="radio" id="all-filter" name="control-filter" checked="checked"/><label for="all-filter">All</label>
+                </div>
+                <div class="filter">
+                    <p class="filter-label">City Size</p>
+                    <input type="radio" id="small-filter" name="urban-filter" /><label for="small-filter">Small</label>
+                    <input type="radio" id="midsize-filter" name="urban-filter"  /><label for="midsize-filter">Midsize</label>
+                    <input type="radio" id="large-filter" name="urban-filter"/><label for="large-filter">Large</label>
+                    <input type="radio" id="all-urban-filter" name="urban-filter" checked="checked"/><label for="all-urban-filter">All</label>
+                </div>
+                
+                <div class="filter">
+                <span class="filter-label">School size&nbsp;</span>
+                <span id="size-range" style="color: #E6550D;" ></span>
+                    <div id="size-range-slider"></div>
+                </div>
+                
+                <div class="filter">
+                <span class="filter-label">Debt range&nbsp;</span>
+                <span id="debt-range" style="color: #E6550D;" ></span>
+                    <div id="debt-range-slider"></div>
+                </div>
+                
+                <div class="filter">
+                <span class="filter-label">COA range&nbsp;</span>
+                <span id="coa-range" style="color: #E6550D;"></span>
+                    <div id="coa-range-slider"></div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div class="left-sidebar focus">
+            <div id="axis-control">
+                <h3 style="display: inline;">Compare&nbsp;</h3>
+                <input type="radio" id="onedown" name="radio"/><label for="onedown">Loans</label>
+                <input type="radio" id="twodown" name="radio" checked="checked" /><label for="twodown">Debt and Grants</label>
+                <input type="radio" id="allup" name="radio"  /><label for="allup">COA</label>
+            </div>
+            <h2 class="school-name"></h2>
+        </div>
+        
+        <div class="left-sidebar states"></div>
+        
+        <div class="left-sidebar details">     
+            <div class="details-on-demand"></div>
+        </div>
+        
+        <img class="negativeAxis" src="images/negativeaxis.png"></img>
+        
+    </div> <!-- main div-->
+    <!-- It is a good practice to load the scripts in the end-->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+    <script src="js/scripts.js"></script>
 </body>
