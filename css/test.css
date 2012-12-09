@@ -1,11 +1,14 @@
+
 	body {
 		font: 10px sans-serif;
 	}
 	
 	div#main {
-		width: 1350px;
-		height: 600px;
-	}
+        height: 100%;
+        width: 100%;
+        min-height: 600px;
+        min-width: 1350px;
+}
 
 	#project-title {
 		margin: 5 auto;
@@ -18,14 +21,25 @@
 		stroke: #000;
 		shape-rendering: crispEdges;
 	}
+	
+	.negativeAxis {
+        position: absolute;
+        top: 680px;
+        left: 17px;
+    }
+	
+	 /* @mila: @todo: check this */
+    .details-on-demand y axis {
+        color: #636363;
+        font-family: sans-serif;
+        font-size: 11px;
+    }
 
-	.bar {
-		fill: steelblue;
+	.bar { /* bars for details-on-demand histograms */
+        fill: #E6550D;
+        fill-opacity: .85;
 	}
 
-	.x.axis path {
-
-	}
 	
 	.brush .extent {
 		stroke: #fff;
@@ -33,32 +47,24 @@
 		shape-rendering: crispEdges;
 	}
 	
-	.ui-autocomplete {
-	        max-height: 100px;
-	        overflow-y: auto;
-	        /* prevent horizontal scrollbar */
-	        overflow-x: hidden;
-	    }
-	
-
+   .ui-autocomplete {
+           max-height: 100px;
+           overflow-y: auto;
+           prevent horizontal scrollbar
+           overflow-x: hidden;
+    }
 	
 	.controls {
 		border: 1px solid #cacaca;
-		height: 298px; /* matching the context view*/
-		padding: 5px 10px;
+        min-height: 298px; 
+        max-height: 298px; 
+        min-width: 250px;
+        max-width: 250px;
+        padding: 5px 10px;
 		background-color: #c7c7c7;
 		color: #636363;
-		margin-bottom: 5px;
-	}
-	
-	#counter {
-
-	}
-	
-	.negativeAxis {
-		position: absolute;
-		top: 645px;
-		left: 17px;
+        margin: 0 5px 5px 0;
+/*         margin-bottom: 5px; */
 	}
 	
 	.left-sidebar {
@@ -66,7 +72,11 @@
 	}
 	
 	.context {
-		background-color: #cacaca;;
+        min-height: 310px;      
+        max-height: 310px;      
+        min-width:1060px;
+        max-width:1060px;
+        background-color: #cacaca;
 		margin: 0 5px 5px 0;
 	}
 	
@@ -74,11 +84,23 @@
 		float: right;
 	}
 	
+	h2.school-name {
+        color: #636363;
+        margin-left: 5px;
+        width: 97%; 
+        min-height: 18px;
+        max-height: 18px;
+    }
+    
 	.focus {
 		clear: both;
 		background-color: #cacaca;
 		margin: 0 5px 10px 0;
-	}
+		min-height: 535px;
+		max-height: 535px;
+        min-width: 335px;
+        max-width: 335px;
+    }
 	
 	.focus-bar {
 		cursor: pointer;
@@ -86,38 +108,57 @@
 	
 	.states {
 		background-color: #cacaca;
-		margin: 0 5px 10px 0;
-		padding-left: 10px;
-	}
+		min-height: 535px;
+		max-height: 535px;
+        min-width: 710px;
+        max-width: 710px;
+        padding-left: 10px;
+        margin: 0 5px 10px 0;
+    }
 	
 	.details {
-		width: 251px; /*Matching the width of the controls area*/
-		height: 480px;
-		background-color: #CCCCCC;
+	    color: #636363;
+	    height: 40%;
+        min-height: 515px;
+        max-height: 515px;
+        min-width: 251px;
+        max-width: 251px;
+        background-color: #CCCCCC;
 		margin: 0 0 10px 0;
 		padding: 10px;
 	}
+
+/*     #default-dod-msg {
+        font-size: 14px;
+        color: #636363;
+    } */
+    
+    .dod_detail_container{
+        overflow:hidden;
+    }
+ 
+    .dod_detail1{
+        width: 67px;        
+	    float: left;
+        padding-left: 8px; 
+    }
+    
+    .dod_detail2{
+        float: left;
+        padding-left: 8px; 
+    }
 	
-	#default-dod-msg {
-		font-size: 14px;
-		color: #636363;
-	}
-	
-	.context-bar {
-	
-	}
-	
-	.rect1 {
-		fill: #E6550D;
-	}
-	
-	.rect2 {
-		fill: #FDAE6B;
-	}
-	
-	.rect3 {
-		fill: #FEE6CE;
-	}
+    .rect1 {
+        fill: #E6550D;
+    }
+    
+    .rect2 {
+        fill: #FDAE6B;
+    }
+    
+    .rect3 {
+        fill: #FEE6CE;
+    }
 	
 	.context-bar .unfilter {
 		fill: #aaa;
@@ -127,44 +168,49 @@
 		fill: #E6550D;
 	}
 	
-	#sort-by {
-		margin: 10px 5px;
-		display: inline-block;
-		float: left;
-	}
+    #sort-by {
+        margin: 10px 5px;
+        display: inline-block;  
+        float: left;            
+    }
 	
 	#search {
-		margin: 10px 10px;
-		display: inline-block;
-		float: right;
-	}
+        margin: 10px 10px;
+        display: inline-block;
+        float: right;
+    }
+    
+    #search input {
+        width:274px;
+        height: 20px;
+    }
 	
-	#search input {
-		width:274px;
-		height: 20px;
-	}
-	
-	#search span {
-		/*display:block; 
-		margin:0 3px 3px 0;*/ 
-		margin: 5px 0 0 80px;
-		display: none;
-		padding:3px 20px 4px 8px;
-		position: absolute; 
-		float:left; 
-		background-color:#eee;
-		-moz-border-radius:7px;
-		-webkit-border-radius:7px; 
-		border-radius:7px; color:#333;
-		font:normal 11px Verdana, Sans-serif;
-	}
-	#search span a {
-		position:absolute; right:8px; top:2px; color:#666;
-		font:bold 12px Verdana, Sans-serif; text-decoration:none;
-	}
-	#search span a:hover { color:#ff0000; }
-	
-	.ui-menu .ui-menu-item { white-space:nowrap; padding:0 10px 0 0; }
+    #search span {
+        margin: 5px 0 0 80px;
+        display: none;
+        padding:3px 20px 4px 8px;
+        position: absolute; 
+        float:left; 
+        background-color:#eee;
+        -moz-border-radius:7px;
+        -webkit-border-radius:7px; 
+        border-radius:7px; color:#333;
+        font:normal 11px Verdana, Sans-serif;
+    }
+    
+    #search span a {
+        position:absolute; right:8px; top:2px; color:#666;
+        font:bold 12px Verdana, Sans-serif; text-decoration:none;
+    }
+    
+    #search span a:hover { 
+        color:#ff0000; 
+    }
+    
+  .ui-menu .ui-menu-item { 
+        white-space:nowrap; 
+        padding:0 10px 0 0; 
+    }
 	
 	#axis-control {
 		margin: 10px 5px;
@@ -174,11 +220,11 @@
 		margin: 10px 5px;
 	}
 	
-	/*.legend {
-		position: absolute;
-		top: 10px;
-		left: 900px;
-	}*/
+/* 	.legend { */
+/* 		position: absolute; */
+/* 		top: 10px; */
+/* 		left: 900px; */
+/* 	} */
 	
 	div.filter .filter-label {
 		font-weight: bold;
@@ -208,4 +254,4 @@
     visibility: hidden;
     }
 
-.clearfix {display: inline-block;}  /* for IE/Mac */
+  .clearfix {display: inline-block;}  /* for IE/Mac */
